@@ -1,19 +1,28 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "PureFrame",
-  "theme": "luma",
+  "name": "Pureframe AI API Documetation",
+  "theme": "mint",
   "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
+    "primary": "#DA5400",
+    "light": "#ff985f",
+    "dark": "#DA5400"
   },
-  "favicon": "/favicon.svg",
+  "favicon": {
+    "light": "/images/favicon-light.svg",
+    "dark": "/images/favicon-dark.svg"
+  },
   "navbar": {
     "primary": {
       "type": "button",
       "label": "Get API Key",
       "href": "https://pureframe.ai"
-    }
+    },
+    "links": [
+      {
+        "href": "mailto:support@pureframe.ai",
+        "label": "Support"
+      }
+    ]
   },
   "navigation": {
     "tabs": [
@@ -23,7 +32,7 @@
           {
             "group": "Get Started",
             "pages": [
-              "introduction",
+              "overview",
               "quickstart",
               "authentication"
             ]
@@ -116,12 +125,43 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "SDK Reference"
       }
     ]
   },
   "footer": {
     "socials": {
-      "website": "https://pureframe.ai"
+      "github": "https://github.com/pureframeai",
+      "x": "https://x.com/pureframeai"
     }
+  },
+  "description": "Explore guides, API docs, and examples for the Pureframe AI API.",
+  "logo": {
+    "light": "/images/light.svg",
+    "dark": "/images/dark.svg"
+  },
+  "fonts": {
+    "family": "DM Sans"
+  },
+  "markdown": {
+    "schema": true
+  },
+  "api": {
+    "openapi": "openapi.json"
+  },
+  "seo": {
+    "metatags": {
+      "title": "Pureframe AI API Documentation",
+      "description": "Explore guides, API docs, and examples for the Pureframe AI API.",
+      "og:type": "website",
+      "og:site_name": "Pureframe AI Documentation",
+      "og:title": "Pureframe AI API Documentation",
+      "og:description": "Explore guides, API docs, and examples for the Pureframe AI API."
+    }
+  },
+  "background": {
+    "decoration": "gradient"
   }
 }

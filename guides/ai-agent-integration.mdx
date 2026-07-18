@@ -1,5 +1,5 @@
 ---
-title: "Integrate PureFrame with AI Agents and LLMs"
+title: "AI Agent"
 sidebarTitle: "AI Agent Integration"
 description: "Use PureFrame as a tool inside LLM-powered agents. Fetch the OpenAI-compatible tool schema and call PureFrame tools from GPT-4o, Claude, or any tool-calling model."
 ---
@@ -14,12 +14,15 @@ PureFrame exposes the following tools through the agent API:
   <Card title="search_videos" icon="magnifying-glass">
     Run a semantic search across a collection using a text query, an image URL, or both. Returns ranked segments with thumbnail images.
   </Card>
+
   <Card title="list_collections" icon="layer-group">
     List all collections in the account, with names, video counts, and creation dates.
   </Card>
+
   <Card title="get_collection" icon="folder-open">
     Retrieve metadata and statistics for a specific collection by ID.
   </Card>
+
   <Card title="get_video" icon="film">
     Fetch metadata for a single video, including status, duration, segment count, and playback URL.
   </Card>
@@ -62,7 +65,6 @@ The agent integration uses two endpoints:
     ]
     ```
   </Step>
-
   <Step title="Invoke a tool">
     When the model decides to call a PureFrame tool, forward the call to `POST /v1/agent/call` with the tool name and the model's parsed arguments. This endpoint **requires a Bearer API key**.
 

@@ -1,5 +1,5 @@
 ---
-title: "Collections: Organize Your Video Library in PureFrame"
+title: "Collections"
 sidebarTitle: "Collections"
 description: "Collections are named groups of videos in PureFrame. Learn how to create and manage collections, scope searches, and understand collection metadata fields."
 ---
@@ -13,7 +13,7 @@ PureFrame returns different sets of fields depending on whether you are listing 
 **List item** — returned when listing all collections (`GET /v1/collections`):
 
 | Field | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `id` | string | Unique identifier for the collection |
 | `user_id` | string | ID of the account that owns the collection |
 | `name` | string | Human-readable name (unique per account) |
@@ -24,7 +24,7 @@ PureFrame returns different sets of fields depending on whether you are listing 
 **Detail** — returned when fetching a single collection (`GET /v1/collections/{id}`). Includes all list-item fields, plus:
 
 | Field | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `total_duration_secs` | number | Combined duration of all videos, in seconds |
 | `storage_bytes` | integer | Total storage used by the collection |
 

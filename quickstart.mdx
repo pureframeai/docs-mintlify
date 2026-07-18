@@ -1,5 +1,5 @@
 ---
-title: "PureFrame Quickstart: From Upload to Search in 5 Minutes"
+title: "Quickstart"
 sidebarTitle: "Quickstart"
 description: "Create a collection, upload a video, wait for indexing, and run your first semantic search — all with the PureFrame API in under 5 minutes."
 ---
@@ -39,7 +39,6 @@ This quickstart walks you through the core PureFrame workflow end to end: create
     }
     ```
   </Step>
-
   <Step title="Upload a video">
     Upload a video file as multipart form data. Pass the `collection_id` from the previous step alongside the file.
 
@@ -66,7 +65,6 @@ This quickstart walks you through the core PureFrame workflow end to end: create
     }
     ```
   </Step>
-
   <Step title="Poll for indexing completion">
     PureFrame indexes videos asynchronously. Poll `GET /v1/jobs/{job_id}` until the `status` field reads `"done"`.
 
@@ -98,7 +96,6 @@ This quickstart walks you through the core PureFrame workflow end to end: create
       Job status progresses through: `queued` → `processing` → `done` (or `failed` if an error occurs). Check the `error` field for a human-readable message when status is `failed`. For production workloads, consider using [Webhooks](/guides/webhooks) instead of polling so PureFrame notifies your server the moment a job completes.
     </Note>
   </Step>
-
   <Step title="Search the collection">
     With your video indexed, run a semantic search. Send a `POST` request to `/v1/search` with a natural language `query` and the target `collection_id`.
 
@@ -151,9 +148,11 @@ Now that you've run your first search, explore the rest of the platform:
   <Card title="Upload & Index" icon="cloud-arrow-up" href="/guides/upload-and-index">
     Learn about batch uploads, supported formats, webhook notifications, and indexing configuration options.
   </Card>
+
   <Card title="Searching Videos" icon="magnifying-glass" href="/guides/searching-videos">
     Explore text queries, image-based search, filtering by collection, and tuning relevance thresholds.
   </Card>
+
   <Card title="API Reference" icon="code" href="/api-reference/overview">
     Full reference documentation for every endpoint, parameter, and response field in the PureFrame API.
   </Card>

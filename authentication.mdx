@@ -1,5 +1,5 @@
 ---
-title: "PureFrame Authentication: API Keys, Scopes, and Errors"
+title: "Authentication"
 sidebarTitle: "Authentication"
 description: "PureFrame uses Bearer API keys for authentication. Learn how to create, scope, and securely use your pf_... API keys in every request."
 ---
@@ -46,7 +46,7 @@ const resp = await fetch("https://api.pureframe.ai/v1/collections", {
 When you create an API key you assign it a permission scope. Choose the narrowest scope that your use case requires.
 
 | Scope | Access |
-|---|---|
+| --- | --- |
 | `all` | Full read/write access to all endpoints. This is the default scope for new keys. Use it for server-side integrations where you control the environment. |
 | `read_only` | Search and list operations only — no uploads, deletions, or configuration changes. Use this scope for public-facing or embedded search experiences where the key may be exposed to end users. |
 
@@ -71,7 +71,7 @@ You manage keys entirely through the API:
 If authentication fails, PureFrame returns one of two error responses:
 
 | Status | Meaning | Common causes |
-|---|---|---|
+| --- | --- | --- |
 | `401 Unauthorized` | The request could not be authenticated. | Missing `Authorization` header, malformed key format, or a revoked/deleted key. |
 | `403 Forbidden` | The request was authenticated but the key lacks permission to perform the action. | Using a `read_only` key to call a write endpoint such as `POST /v1/upload`. |
 

@@ -1,5 +1,5 @@
 ---
-title: "Upload and Index Videos with PureFrame"
+title: "Upload & Index"
 sidebarTitle: "Upload & Index"
 description: "Step-by-step guide to uploading video files to a PureFrame collection, tracking processing status, and confirming videos are ready to search."
 ---
@@ -42,7 +42,6 @@ Before you upload your first video, make sure you have:
     }
     ```
   </Step>
-
   <Step title="Upload the video">
     Send the video file as `multipart/form-data` to `POST /v1/upload`. Include your `collection_id` and the `file` field pointing to your local file.
 
@@ -81,35 +80,34 @@ Before you upload your first video, make sure you have:
 
     Save both `job_id` and `video_id` — you'll use `job_id` to track progress and `video_id` to query the video once it's indexed.
   </Step>
-
   <Step title="Track indexing progress">
     Poll `GET /v1/jobs/{job_id}` to check the current processing status. The `progress_pct` field gives you a 0–100 completion percentage.
 
     ```python
     import time, requests
-
+    
     job_id = "job_def456"
     headers = {"Authorization": "Bearer pf_your_key"}
-
+    
     while True:
         r = requests.get(
             f"https://api.pureframe.ai/v1/jobs/{job_id}",
             headers=headers
         ).json()
-
+    
         job = r["data"]
         print(f"Status: {job['status']} ({job['progress_pct']}%)")
-
+    
         if job["status"] in ("done", "failed"):
             break
-
+    
         time.sleep(3)
     ```
 
     The `status` field cycles through these values:
 
     | Status | Meaning |
-    |--------|---------|
+    | --- | --- |
     | `queued` | Job is waiting to be picked up by a worker |
     | `processing` | Frames, scenes, and transcript are being extracted and indexed |
     | `done` | Video is fully indexed and searchable |
@@ -119,7 +117,6 @@ Before you upload your first video, make sure you have:
       Use webhooks to avoid polling — see [Webhooks](/guides/webhooks) for how to register an endpoint and receive `video.processed` events automatically.
     </Note>
   </Step>
-
   <Step title="Confirm the video is ready">
     Once the job status is `done`, call `GET /v1/videos/{video_id}` to verify indexing succeeded and retrieve playback metadata:
 
@@ -222,7 +219,7 @@ If a job's `status` is `failed`, inspect the `error` field on the job object for
 Common error codes:
 
 | Code | Description |
-|------|-------------|
+| --- | --- |
 | `unsupported_codec` | Re-encode the video to H.264/AAC |
 | `file_too_large` | File exceeds the 10 GB per-file limit |
 | `corrupt_file` | The file could not be demuxed; verify it plays locally |
@@ -238,18 +235,23 @@ PureFrame accepts the following video container formats:
   <Card title="MP4" icon="file-video">
     H.264 or H.265 video stream
   </Card>
+
   <Card title="MOV" icon="file-video">
     QuickTime container
   </Card>
+
   <Card title="AVI" icon="file-video">
     Audio Video Interleave
   </Card>
+
   <Card title="WebM" icon="file-video">
     VP8, VP9, or AV1 stream
   </Card>
+
   <Card title="MPEG" icon="file-video">
     MPEG-1 and MPEG-2
   </Card>
+
   <Card title="MKV" icon="file-video">
     Matroska container
   </Card>

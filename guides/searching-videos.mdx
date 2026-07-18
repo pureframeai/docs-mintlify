@@ -1,5 +1,5 @@
 ---
-title: "Search Your Videos with Text and Images"
+title: "Search"
 sidebarTitle: "Searching Videos"
 description: "Run semantic searches across your PureFrame video collections using text queries, reference images, or both. Learn how to read results and tune ranking."
 ---
@@ -44,7 +44,7 @@ This is ideal for finding shots that match a specific composition, color palette
 
 ---
 
-## Combined text + image search
+## Combined text \+ image search
 
 Supply both a `query` and an image reference to anchor the search visually while refining it semantically. Use `image_url` if the reference image is already hosted:
 
@@ -110,12 +110,12 @@ The response contains a `results` array. Each element represents a matching vide
 ### Segment fields
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `timestamp_start` | `float` | Start of the segment in seconds |
 | `timestamp_end` | `float` | End of the segment in seconds |
 | `score` | `float` | Relevance score from 0 to 1. Higher is more relevant |
 | `type` | `string` | Source of the match: `video`, `transcript`, or `scene` |
-| `text_content` | `string \| null` | Transcript snippet when `type` is `transcript`; otherwise `null` |
+| `text_content` | `string | null` | Transcript snippet when `type` is `transcript`; otherwise `null` |
 | `video_url` | `string` | Presigned URL to the segment clip. Valid for approximately 1 hour |
 | `thumbnail_url` | `string` | Presigned URL to a representative JPEG thumbnail |
 
@@ -137,7 +137,7 @@ curl -X POST https://api.pureframe.ai/v1/search \
 ### Available modes
 
 | Mode value | What it searches |
-|------------|-----------------|
+| --- | --- |
 | `video` | Per-frame visual embeddings |
 | `transcript` | Speech-to-text segments |
 | `scene` | Scene-level visual summaries |
@@ -145,8 +145,8 @@ curl -X POST https://api.pureframe.ai/v1/search \
 ### Ranking strategies
 
 | Strategy | When to use |
-|----------|-------------|
-| `image_first` *(default)* | Appearance and scene-based queries where visuals dominate |
+| --- | --- |
+| `image_first`_(default)_ | Appearance and scene-based queries where visuals dominate |
 | `fusion` | Mixed queries that combine visual and textual cues. Uses Reciprocal Rank Fusion (RRF) to merge results from each mode |
 
 ---
@@ -184,7 +184,7 @@ curl -X POST https://api.pureframe.ai/v1/search/feedback \
 ```
 
 | Field | Values | Description |
-|-------|--------|-------------|
+| --- | --- | --- |
 | `video_id` | string | The video the segment belongs to |
 | `timestamp_start` | float | Start timestamp of the segment you're rating |
 | `signal` | `"positive"` / `"negative"` | Whether the result was relevant |

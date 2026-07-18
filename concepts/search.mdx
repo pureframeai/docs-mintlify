@@ -1,5 +1,5 @@
 ---
-title: "How Semantic Video Search Works in PureFrame"
+title: "Search"
 sidebarTitle: "Search"
 description: "PureFrame searches video content using visual embeddings, transcripts, and scenes. Learn about search modes, ranking strategies, result structure, and how to tune results."
 ---
@@ -11,7 +11,7 @@ PureFrame's search finds the exact moment in any video — not just the file. Wh
 Every search request to `POST /v1/search` requires **at least one** of the following inputs. You can combine a text query and an image reference in a single request for more precise results.
 
 | Parameter | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `query` | string | Natural language description or keyword string |
 | `image` | file | An uploaded image file used as a visual reference |
 | `image_url` | string | URL of a reference image for visual similarity matching |
@@ -29,7 +29,7 @@ curl -X POST https://api.pureframe.ai/v1/search \
   -F "natural_language=true"
 ```
 
-**Combined text + image search:**
+**Combined text \+ image search:**
 
 ```bash
 curl -X POST https://api.pureframe.ai/v1/search \
@@ -42,12 +42,12 @@ curl -X POST https://api.pureframe.ai/v1/search \
 
 Use the `modes` parameter to control which indexes PureFrame queries. It accepts an array of mode names and defaults to all three when omitted.
 
-```
+```text
 "modes": ["video", "transcript", "scene"]
 ```
 
 | Mode | What it searches | Best for |
-|---|---|---|
+| --- | --- | --- |
 | `video` | Visual embeddings at the frame level | Finding visually similar moments, specific objects, actions, or scenes |
 | `transcript` | Speech-to-text index | Finding moments where specific words or phrases are spoken |
 | `scene` | Scene-level visual groupings | Broader contextual matches across longer narrative segments |
@@ -70,6 +70,7 @@ The `search_mode` parameter controls how PureFrame ranks results when multiple i
   <Accordion title="image_first (default)">
     Prioritizes visual similarity scores and blends in text signals as secondary factors. Use this when visual relevance is the primary goal — for example, finding a specific look, setting, or on-screen object.
   </Accordion>
+
   <Accordion title="fusion">
     Combines visual and text rankings using **Reciprocal Rank Fusion (RRF)**, giving each signal equal influence over the final order. Use this when your query has both strong visual and textual components and you want a balanced result set.
   </Accordion>
@@ -159,7 +160,7 @@ A successful search response returns an array of `SearchResult` objects. Each re
 ### SearchResult fields
 
 | Field | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `video_id` | string | ID of the matched video |
 | `filename` | string | Original filename of the matched video |
 | `collection_id` | string | ID of the collection containing the video |
@@ -169,7 +170,7 @@ A successful search response returns an array of `SearchResult` objects. Each re
 ### Segment fields
 
 | Field | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `timestamp_start` | number | Start of the matched segment, in seconds |
 | `timestamp_end` | number | End of the matched segment, in seconds |
 | `score` | number (0–1) | Semantic similarity score; higher is more relevant |

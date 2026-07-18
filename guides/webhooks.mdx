@@ -1,5 +1,5 @@
 ---
-title: "Receive Processing Events with PureFrame Webhooks"
+title: "Webhooks"
 sidebarTitle: "Webhooks"
 description: "Configure webhook endpoints to receive real-time notifications when PureFrame finishes processing videos. Learn to create, test, and manage endpoints."
 ---
@@ -11,7 +11,7 @@ Instead of polling `GET /v1/jobs/{job_id}` in a loop, you can register a webhook
 PureFrame currently emits the following event type:
 
 | Event | When it fires |
-|-------|---------------|
+| --- | --- |
 | `video.processed` | A video has finished indexing (status `done` or `failed`) |
 
 You subscribe to one or more event types when you create an endpoint. PureFrame will only deliver the events you've subscribed to.
@@ -146,7 +146,7 @@ Each delivery record includes:
 ```
 
 | Status | Meaning |
-|--------|---------|
+| --- | --- |
 | `delivered` | Your server returned a `2xx` response |
 | `failed` | Your server returned a non-2xx response or timed out |
 | `pending` | Scheduled for retry |
