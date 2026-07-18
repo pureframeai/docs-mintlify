@@ -73,7 +73,7 @@ The response contains a `results` array. Each element represents a matching vide
     "results": [
       {
         "video_id": "vid_ghi789",
-        "title": "conference_day2.mp4",
+        "filename": "conference_day2.mp4",
         "segments": [
           {
             "timestamp_start": 142.5,
@@ -177,13 +177,10 @@ Send feedback to `POST /v1/search/feedback`:
 ```bash
 curl -X POST https://api.pureframe.ai/v1/search/feedback \
   -H "Authorization: Bearer pf_your_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "video_id": "vid_ghi789",
-    "timestamp_start": 142.5,
-    "signal": "positive",
-    "query": "person waving goodbye"
-  }'
+  --data-urlencode "video_id=vid_ghi789" \
+  --data-urlencode "timestamp_start=142.5" \
+  --data-urlencode "signal=positive" \
+  --data-urlencode "query=person waving goodbye"
 ```
 
 | Field | Values | Description |

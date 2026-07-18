@@ -1,23 +1,32 @@
 ---
-title: "Collections: Organize Your Video Library"
+title: "Collections: Organize Your Video Library in PureFrame"
 sidebarTitle: "Collections"
-description: "Collections are named groups of videos in PureFrame. Learn how to use collections to organize videos and scope searches to the right content."
+description: "Collections are named groups of videos in PureFrame. Learn how to create and manage collections, scope searches, and understand collection metadata fields."
 ---
 
 Collections are the top-level organizational unit in PureFrame. Every video you upload belongs to a collection, and every search can be scoped to one. Use collections to keep your video library structured, isolate data between projects or customers, and make sure searches return only the content you care about.
 
-## Collection structure
+## Collection fields
 
-Each collection exposes the following fields:
+PureFrame returns different sets of fields depending on whether you are listing collections or fetching a single collection's details.
+
+**List item** — returned when listing all collections (`GET /v1/collections`):
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | string | Unique identifier for the collection |
+| `user_id` | string | ID of the account that owns the collection |
 | `name` | string | Human-readable name (unique per account) |
 | `video_count` | integer | Number of videos currently in the collection |
+| `thumbnail_urls` | array of strings | Thumbnail images drawn from recent videos in the collection |
+| `created_at` | string (ISO 8601) | Timestamp when the collection was created |
+
+**Detail** — returned when fetching a single collection (`GET /v1/collections/{id}`). Includes all list-item fields, plus:
+
+| Field | Type | Description |
+|---|---|---|
 | `total_duration_secs` | number | Combined duration of all videos, in seconds |
 | `storage_bytes` | integer | Total storage used by the collection |
-| `created_at` | string (ISO 8601) | Timestamp when the collection was created |
 
 Collection names must be unique within your account and between 1 and 255 characters long.
 
@@ -46,26 +55,27 @@ A successful response returns the new collection object:
 ```json
 {
   "id": "col_01hx3k9z2f8r4e7w",
+  "user_id": "usr_01hx1a2b3c4d5e6f",
   "name": "product-demos",
   "video_count": 0,
-  "total_duration_secs": 0,
-  "storage_bytes": 0,
+  "thumbnail_urls": [],
   "created_at": "2024-06-01T12:00:00Z"
 }
 ```
 
+<Note>
+  Collection names must be unique per account and between 1 and 255 characters long. Attempting to create a collection with a name that already exists in your account returns a `409 Conflict` error.
+</Note>
+
 ## Scoping searches to a collection
 
-Pass `collection_id` in your search request body to restrict results to a single collection. When you omit it, PureFrame searches across all collections in your account.
+Pass `collection_id` in your search request to restrict results to a single collection. When you omit it, PureFrame searches across all collections in your account.
 
 ```bash
 curl -X POST https://api.pureframe.ai/v1/search \
   -H "Authorization: Bearer pf_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "product unboxing",
-    "collection_id": "col_01hx3k9z2f8r4e7w"
-  }'
+  -F "query=product unboxing" \
+  -F "collection_id=col_01hx3k9z2f8r4e7w"
 ```
 
 ## Retrieving collection details
@@ -80,8 +90,13 @@ curl https://api.pureframe.ai/v1/collections/col_01hx3k9z2f8r4e7w \
 ```json
 {
   "id": "col_01hx3k9z2f8r4e7w",
+  "user_id": "usr_01hx1a2b3c4d5e6f",
   "name": "product-demos",
   "video_count": 42,
+  "thumbnail_urls": [
+    "https://cdn.pureframe.ai/thumbnails/vid_abc.jpg",
+    "https://cdn.pureframe.ai/thumbnails/vid_def.jpg"
+  ],
   "total_duration_secs": 18340,
   "storage_bytes": 10737418240,
   "created_at": "2024-06-01T12:00:00Z"
@@ -100,10 +115,6 @@ Send a `DELETE` request to `/v1/collections/{id}` to remove a collection and all
 curl -X DELETE https://api.pureframe.ai/v1/collections/col_01hx3k9z2f8r4e7w \
   -H "Authorization: Bearer pf_..."
 ```
-
-<Note>
-  Collection names must be unique per account and between 1 and 255 characters long. Attempting to create a collection with a name that already exists in your account returns a `409 Conflict` error.
-</Note>
 
 ## Next steps
 

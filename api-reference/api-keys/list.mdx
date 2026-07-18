@@ -28,6 +28,10 @@ curl https://api.pureframe.ai/v1/api_keys \
   Unique identifier for the API key (e.g. `key_abc123`).
 </ResponseField>
 
+<ResponseField name="user_id" type="string">
+  The identifier of the PureFrame account that owns this key.
+</ResponseField>
+
 <ResponseField name="name" type="string">
   The human-readable label assigned to the key when it was created.
 </ResponseField>
@@ -59,33 +63,38 @@ curl https://api.pureframe.ai/v1/api_keys \
 ## Response Example
 
 ```json
-[
-  {
-    "id": "key_abc123",
-    "name": "Production Server",
-    "prefix": "pf_a1b2",
-    "permissions": "all",
-    "last_used_at": "2024-11-05T09:14:33Z",
-    "created_at": "2024-10-01T12:00:00Z",
-    "revoked_at": null
-  },
-  {
-    "id": "key_def456",
-    "name": "Read-Only Dashboard",
-    "prefix": "pf_d3e4",
-    "permissions": "read_only",
-    "last_used_at": "2024-11-04T17:45:00Z",
-    "created_at": "2024-10-15T09:30:00Z",
-    "revoked_at": null
-  },
-  {
-    "id": "key_ghi789",
-    "name": "Old CI Key",
-    "prefix": "pf_g5h6",
-    "permissions": "all",
-    "last_used_at": "2024-10-20T11:00:00Z",
-    "created_at": "2024-08-01T08:00:00Z",
-    "revoked_at": "2024-10-25T16:00:00Z"
-  }
-]
+{
+  "data": [
+    {
+      "id": "key_abc123",
+      "user_id": "usr_111",
+      "name": "Production Server",
+      "prefix": "pf_a1b2",
+      "permissions": "all",
+      "last_used_at": "2024-11-05T09:14:33Z",
+      "created_at": "2024-10-01T12:00:00Z",
+      "revoked_at": null
+    },
+    {
+      "id": "key_def456",
+      "user_id": "usr_111",
+      "name": "Read-Only Dashboard",
+      "prefix": "pf_d3e4",
+      "permissions": "read_only",
+      "last_used_at": "2024-11-04T17:45:00Z",
+      "created_at": "2024-10-15T09:30:00Z",
+      "revoked_at": null
+    },
+    {
+      "id": "key_ghi789",
+      "user_id": "usr_111",
+      "name": "Old CI Key",
+      "prefix": "pf_g5h6",
+      "permissions": "all",
+      "last_used_at": "2024-10-20T11:00:00Z",
+      "created_at": "2024-08-01T08:00:00Z",
+      "revoked_at": "2024-10-25T16:00:00Z"
+    }
+  ]
+}
 ```

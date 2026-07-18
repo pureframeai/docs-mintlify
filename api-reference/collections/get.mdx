@@ -1,5 +1,5 @@
 ---
-title: "Get Collection Details"
+title: "Get Collection Details — PureFrame API Reference"
 sidebarTitle: "Get Collection"
 description: "GET /v1/collections/{collection_id} — Retrieve a collection's details including total video count, total duration, and storage usage in bytes."
 ---
@@ -65,6 +65,10 @@ Returns a `CollectionDetail` object inside the standard `data` envelope.
   Unique identifier of the collection.
 </ResponseField>
 
+<ResponseField name="user_id" type="string">
+  The ID of the account that owns this collection.
+</ResponseField>
+
 <ResponseField name="name" type="string">
   The human-readable name of the collection.
 </ResponseField>
@@ -91,6 +95,7 @@ Returns a `CollectionDetail` object inside the standard `data` envelope.
 {
   "data": {
     "id": "col_01hx9z2b3m4n5p6q7r8s9t0u",
+    "user_id": "usr_09wv8u7t6s5r4q3p2o1n0m",
     "name": "Product Demos",
     "video_count": 142,
     "total_duration_secs": 87432.5,

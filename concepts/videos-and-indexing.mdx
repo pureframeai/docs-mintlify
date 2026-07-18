@@ -1,7 +1,7 @@
 ---
-title: "Videos and Indexing in PureFrame"
+title: "Videos and Indexing in PureFrame: Upload & Track"
 sidebarTitle: "Videos & Indexing"
-description: "Learn how PureFrame ingests and indexes video files, what formats are supported, how to track processing progress, and what video metadata is available."
+description: "Learn how PureFrame ingests and indexes video files, what formats are supported, how to track processing progress, and what video metadata is available after indexing."
 ---
 
 When you upload a video to PureFrame, it goes through an asynchronous indexing pipeline. PureFrame extracts visual frames, runs speech-to-text transcription, and detects scene boundaries — then stores searchable embeddings for each. Once indexing finishes, every frame, spoken word, and scene in the video becomes instantly searchable.
@@ -21,7 +21,7 @@ PureFrame accepts the following video formats:
 
 ## Asynchronous processing
 
-Video indexing takes time, so the upload endpoint returns immediately with a `job_id` rather than waiting for processing to complete. Use that `job_id` to poll the jobs endpoint and track progress.
+Video indexing takes time, so the upload endpoint returns immediately with a job `id` rather than waiting for processing to complete. Use that `id` to poll the jobs endpoint and track progress.
 
 ```bash
 # 1. Upload a video
@@ -33,7 +33,7 @@ curl -X POST https://api.pureframe.ai/v1/videos \
 
 ```json
 {
-  "job_id": "job_01hx4m2p7n9q6t3r",
+  "id": "job_01hx4m2p7n9q6t3r",
   "status": "queued"
 }
 ```
@@ -46,9 +46,14 @@ curl https://api.pureframe.ai/v1/jobs/job_01hx4m2p7n9q6t3r \
 
 ```json
 {
-  "job_id": "job_01hx4m2p7n9q6t3r",
+  "id": "job_01hx4m2p7n9q6t3r",
+  "video_id": "vid_01hx5n3q8m7r2k1p",
+  "user_id": "usr_01hx1a2b3c4d5e6f",
   "status": "processing",
-  "progress_pct": 47
+  "progress_pct": 47,
+  "error": null,
+  "created_at": "2024-06-01T12:00:00Z",
+  "updated_at": "2024-06-01T12:01:15Z"
 }
 ```
 
@@ -68,6 +73,19 @@ queued → processing → done
 | `done` | Indexing is complete; the video is fully searchable |
 | `failed` | Processing encountered an unrecoverable error; check the `error` field for details |
 
+### Job fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Unique identifier for the job |
+| `video_id` | string | ID of the video being processed |
+| `user_id` | string | ID of the account that submitted the job |
+| `status` | string | Current job state: `queued`, `processing`, `done`, or `failed` |
+| `progress_pct` | integer (0–100) | Processing progress percentage |
+| `error` | string \| null | Error message if the job `failed`; otherwise `null` |
+| `created_at` | string (ISO 8601) | Timestamp when the job was created |
+| `updated_at` | string (ISO 8601) | Timestamp of the most recent status update |
+
 <Tip>
   Use the `webhook_url` parameter when uploading to receive a POST notification the moment processing finishes, instead of repeatedly polling the jobs endpoint.
 
@@ -86,17 +104,23 @@ Once a job reaches `done` status, the video object includes the following metada
 
 | Field | Type | Description |
 |---|---|---|
+| `id` | string | Unique identifier for the video |
+| `filename` | string | Original filename of the uploaded file |
+| `collection_id` | string | ID of the collection this video belongs to |
+| `status` | string | Processing status of the video |
+| `progress_pct` | integer (0–100) | Indexing progress percentage |
 | `duration_secs` | number | Length of the video in seconds |
 | `width` | integer | Frame width in pixels |
 | `height` | integer | Frame height in pixels |
 | `fps` | number | Frames per second |
 | `codec` | string | Video codec (e.g., `h264`, `vp9`) |
 | `mime_type` | string | MIME type of the source file (e.g., `video/mp4`) |
-| `file_size_bytes` | integer | Original upload file size |
+| `file_size_bytes` | integer | Original upload file size in bytes |
 | `storage_bytes` | integer | Storage consumed after processing |
 | `segments_count` | integer | Number of indexed segments generated from the video |
 | `thumbnail_url` | string | URL of an auto-generated thumbnail image |
-| `playback_url` | string | Presigned URL for streaming playback (valid ~1 hour) |
+| `playback_url` | string | Presigned URL for streaming playback (valid approximately 1 hour) |
+| `created_at` | string (ISO 8601) | Timestamp when the video was uploaded |
 
 ## Search modes enabled after indexing
 

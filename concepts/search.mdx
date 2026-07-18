@@ -1,14 +1,14 @@
 ---
 title: "How Semantic Video Search Works in PureFrame"
 sidebarTitle: "Search"
-description: "PureFrame searches video content using visual embeddings, transcripts, and scenes. Learn about search modes, ranking, result structure, and how to tune results."
+description: "PureFrame searches video content using visual embeddings, transcripts, and scenes. Learn about search modes, ranking strategies, result structure, and how to tune results."
 ---
 
 PureFrame's search finds the exact moment in any video — not just the file. Whether you describe a scene in plain language, paste a reference image URL, or combine both, PureFrame scans visual frames, spoken words, and scene boundaries simultaneously to surface the most relevant moments ranked by semantic similarity.
 
 ## Search inputs
 
-Every search request to `POST /v1/search` requires at least one input. You can combine a text query and an image reference in a single request for more precise results.
+Every search request to `POST /v1/search` requires **at least one** of the following inputs. You can combine a text query and an image reference in a single request for more precise results.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -16,16 +16,17 @@ Every search request to `POST /v1/search` requires at least one input. You can c
 | `image` | file | An uploaded image file used as a visual reference |
 | `image_url` | string | URL of a reference image for visual similarity matching |
 
+Requests that omit all three of `query`, `image`, and `image_url` will be rejected with a validation error.
+
+The search endpoint accepts `multipart/form-data` — use `-F` flags rather than a JSON body.
+
 **Text-only search:**
 
 ```bash
 curl -X POST https://api.pureframe.ai/v1/search \
   -H "Authorization: Bearer pf_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "someone opening a cardboard box",
-    "natural_language": true
-  }'
+  -F "query=someone opening a cardboard box" \
+  -F "natural_language=true"
 ```
 
 **Combined text + image search:**
@@ -33,18 +34,15 @@ curl -X POST https://api.pureframe.ai/v1/search \
 ```bash
 curl -X POST https://api.pureframe.ai/v1/search \
   -H "Authorization: Bearer pf_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "product close-up on white background",
-    "image_url": "https://example.com/reference-shot.jpg"
-  }'
+  -F "query=product close-up on white background" \
+  -F "image_url=https://example.com/reference-shot.jpg"
 ```
 
 ## Search modes
 
 Use the `modes` parameter to control which indexes PureFrame queries. It accepts an array of mode names and defaults to all three when omitted.
 
-```json
+```
 "modes": ["video", "transcript", "scene"]
 ```
 
@@ -59,11 +57,9 @@ Use the `modes` parameter to control which indexes PureFrame queries. It accepts
 ```bash
 curl -X POST https://api.pureframe.ai/v1/search \
   -H "Authorization: Bearer pf_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "quarterly earnings discussion",
-    "modes": ["transcript", "scene"]
-  }'
+  -F "query=quarterly earnings discussion" \
+  -F "modes[]=transcript" \
+  -F "modes[]=scene"
 ```
 
 ## Ranking strategies
@@ -79,17 +75,22 @@ The `search_mode` parameter controls how PureFrame ranks results when multiple i
   </Accordion>
 </AccordionGroup>
 
-```json
-"search_mode": "fusion"
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=product launch announcement" \
+  -F "search_mode=fusion"
 ```
 
 ## Natural language flag
 
 Set `natural_language` to `true` to tell PureFrame to interpret your `query` as a natural language description rather than a keyword string. This improves results for conversational or descriptive queries.
 
-```json
-"natural_language": true,
-"query": "a person laughing at a dinner table"
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=a person laughing at a dinner table" \
+  -F "natural_language=true"
 ```
 
 When `natural_language` is `false` (the default), PureFrame treats the query as a keyword or phrase match and weights exact token overlap more heavily.
@@ -98,22 +99,29 @@ When `natural_language` is `false` (the default), PureFrame treats the query as 
 
 Pass a `labels` array to restrict results to segments that match specific semantic labels. Labels let you narrow a broad query to a particular content category without changing the query itself.
 
-```json
-"labels": ["outdoor", "interview"]
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=interview segment" \
+  -F "labels[]=outdoor" \
+  -F "labels[]=interview"
 ```
 
 ## Paginating results
 
-Use `page` and `per_page` to paginate through result sets. `per_page` defaults to `10`.
+Use `page` and `per_page` to paginate through result sets. `page` defaults to `1` and `per_page` defaults to `10`.
 
-```json
-"page": 2,
-"per_page": 25
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=product unboxing" \
+  -F "page=2" \
+  -F "per_page=25"
 ```
 
 ## Result structure
 
-A successful search response returns an array of `SearchResult` objects. Each result represents a matched video, and each video contains a `segments` array listing the specific moments that matched.
+A successful search response returns an array of `SearchResult` objects. Each result represents a matched video and contains a `segments` array listing the specific moments that matched.
 
 ```json
 [
@@ -121,6 +129,7 @@ A successful search response returns an array of `SearchResult` objects. Each re
     "video_id": "vid_01hx5n3q8m7r2k1p",
     "filename": "product-launch-recap.mp4",
     "collection_id": "col_01hx3k9z2f8r4e7w",
+    "status": "done",
     "segments": [
       {
         "timestamp_start": 42.1,
@@ -128,6 +137,7 @@ A successful search response returns an array of `SearchResult` objects. Each re
         "score": 0.94,
         "type": "video",
         "text_content": null,
+        "bbox": null,
         "video_url": "https://cdn.pureframe.ai/segments/seg_abc123?token=...",
         "thumbnail_url": "https://cdn.pureframe.ai/thumbnails/seg_abc123.jpg"
       },
@@ -137,6 +147,7 @@ A successful search response returns an array of `SearchResult` objects. Each re
         "score": 0.87,
         "type": "transcript",
         "text_content": "Let me walk you through the unboxing experience.",
+        "bbox": null,
         "video_url": "https://cdn.pureframe.ai/segments/seg_def456?token=...",
         "thumbnail_url": "https://cdn.pureframe.ai/thumbnails/seg_def456.jpg"
       }
@@ -144,6 +155,16 @@ A successful search response returns an array of `SearchResult` objects. Each re
   }
 ]
 ```
+
+### SearchResult fields
+
+| Field | Type | Description |
+|---|---|---|
+| `video_id` | string | ID of the matched video |
+| `filename` | string | Original filename of the matched video |
+| `collection_id` | string | ID of the collection containing the video |
+| `status` | string | Processing status of the video |
+| `segments` | array | List of matched segments within this video |
 
 ### Segment fields
 
@@ -154,7 +175,8 @@ A successful search response returns an array of `SearchResult` objects. Each re
 | `score` | number (0–1) | Semantic similarity score; higher is more relevant |
 | `type` | string | Index that produced this match: `video`, `transcript`, or `scene` |
 | `text_content` | string \| null | Transcribed text for `transcript` segments; `null` for visual segments |
-| `video_url` | string | Presigned URL to stream or download the segment clip (valid ~1 hour) |
+| `bbox` | object \| null | Bounding box coordinates for spatially located matches; `null` when not applicable |
+| `video_url` | string | Presigned URL to stream or download the segment clip (valid approximately 1 hour) |
 | `thumbnail_url` | string | URL of a thumbnail image for the segment |
 
 <Tip>

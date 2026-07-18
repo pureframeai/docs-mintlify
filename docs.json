@@ -102,6 +102,12 @@
             ]
           },
           {
+            "group": "FrameMap",
+            "pages": [
+              "api-reference/framemap"
+            ]
+          },
+          {
             "group": "API Keys",
             "pages": [
               "api-reference/api-keys/list",

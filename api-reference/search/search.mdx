@@ -49,8 +49,8 @@ Query your indexed video collections using natural language text, a reference im
   When `true`, PureFrame treats the `query` as a full natural-language sentence and uses a more expressive semantic model optimised for descriptive queries rather than keyword lookups.
 </ParamField>
 
-<ParamField body="labels" type="array">
-  Filter results to segments that have been tagged with all of the specified semantic labels. Labels are strings such as `"outdoor"`, `"person"`, or `"product-demo"`.
+<ParamField body="labels" type="array" default="[]">
+  Filter results to segments that have been tagged with all of the specified semantic labels. Labels are strings such as `"outdoor"`, `"person"`, or `"product-demo"`. Defaults to an empty array (no label filtering).
 </ParamField>
 
 <ParamField body="page" type="integer" default="1">
@@ -58,7 +58,7 @@ Query your indexed video collections using natural language text, a reference im
 </ParamField>
 
 <ParamField body="per_page" type="integer" default="10">
-  Number of result videos to return per page. Each result may contain multiple matching segments. Maximum `50`.
+  Number of result videos to return per page. Each result may contain multiple matching segments.
 </ParamField>
 
 ## Request Example
@@ -122,12 +122,16 @@ Returns a `data` array where each element is a `SearchResult` grouping a matched
           For `transcript`-type segments, the verbatim spoken text within the segment window. `null` for `video` and `scene` segments.
         </ResponseField>
 
-        <ResponseField name="video_url" type="string">
-          A presigned URL to stream the video clip for this segment, valid for approximately **1 hour**.
+        <ResponseField name="bbox" type="object | null">
+          Bounding box coordinates for the matched region within the frame, when available. `null` if no bounding box was detected for this segment.
         </ResponseField>
 
-        <ResponseField name="thumbnail_url" type="string">
-          URL of a thumbnail image representing the segment's key frame.
+        <ResponseField name="video_url" type="string | null">
+          A presigned URL to stream the video clip for this segment, valid for approximately **1 hour**. `null` if the clip is not yet available.
+        </ResponseField>
+
+        <ResponseField name="thumbnail_url" type="string | null">
+          URL of a thumbnail image representing the segment's key frame. `null` if the thumbnail has not yet been generated.
         </ResponseField>
       </Expandable>
     </ResponseField>

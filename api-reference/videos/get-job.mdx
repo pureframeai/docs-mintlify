@@ -47,8 +47,8 @@ curl https://api.pureframe.ai/v1/jobs/job_9xkT2mLpQr \
   - `failed` — an error occurred; see the `error` field for details
 </ResponseField>
 
-<ResponseField name="progress_pct" type="integer">
-  Processing progress as an integer from `0` to `100`. Increments during the `processing` phase and reaches `100` when status transitions to `done`.
+<ResponseField name="progress_pct" type="integer" default="0">
+  Processing progress as an integer from `0` to `100`. Defaults to `0` when the job is first queued. Increments during the `processing` phase and reaches `100` when status transitions to `done`.
 </ResponseField>
 
 <ResponseField name="error" type="string | null">

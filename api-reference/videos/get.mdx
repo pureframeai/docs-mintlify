@@ -89,12 +89,12 @@ Returns a `VideoDetail` object containing all metadata fields plus playback and 
   Indexing progress from `0` to `100`. Reaches `100` when status is `done`.
 </ResponseField>
 
-<ResponseField name="playback_url" type="string">
-  A presigned URL for streaming or downloading the video, valid for approximately **1 hour** from the time of the API call.
+<ResponseField name="playback_url" type="string | null">
+  A presigned URL for streaming or downloading the video, valid for approximately **1 hour** from the time of the API call. `null` if the video has not yet finished processing.
 </ResponseField>
 
-<ResponseField name="segments_count" type="integer">
-  Total number of indexed segments available for this video. Only meaningful when status is `done`.
+<ResponseField name="segments_count" type="integer" required>
+  Total number of indexed segments available for this video. Always present in the response; meaningful when status is `done`.
 </ResponseField>
 
 <Note>

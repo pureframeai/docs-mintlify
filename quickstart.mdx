@@ -1,5 +1,5 @@
 ---
-title: "Get Started with PureFrame in 5 Minutes"
+title: "PureFrame Quickstart: From Upload to Search in 5 Minutes"
 sidebarTitle: "Quickstart"
 description: "Create a collection, upload a video, wait for indexing, and run your first semantic search — all with the PureFrame API in under 5 minutes."
 ---
@@ -80,8 +80,12 @@ This quickstart walks you through the core PureFrame workflow end to end: create
       "data": {
         "id": "job_def456",
         "video_id": "vid_ghi789",
+        "user_id": "usr_123",
         "status": "done",
-        "progress_pct": 100
+        "progress_pct": 100,
+        "error": null,
+        "created_at": "2024-01-15T10:01:00Z",
+        "updated_at": "2024-01-15T10:03:45Z"
       },
       "meta": {
         "request_id": "req_jkl",
@@ -91,7 +95,7 @@ This quickstart walks you through the core PureFrame workflow end to end: create
     ```
 
     <Note>
-      Job status progresses through three stages: `queued` → `processing` → `done`. For production workloads, consider using [Webhooks](/guides/webhooks) instead of polling so PureFrame notifies your server the moment a job completes.
+      Job status progresses through: `queued` → `processing` → `done` (or `failed` if an error occurs). Check the `error` field for a human-readable message when status is `failed`. For production workloads, consider using [Webhooks](/guides/webhooks) instead of polling so PureFrame notifies your server the moment a job completes.
     </Note>
   </Step>
 
@@ -101,8 +105,8 @@ This quickstart walks you through the core PureFrame workflow end to end: create
     ```bash
     curl -X POST https://api.pureframe.ai/v1/search \
       -H "Authorization: Bearer pf_your_api_key_here" \
-      -F "query=person waving" \
-      -F "collection_id=col_abc123"
+      -H "Content-Type: application/json" \
+      -d '{"query": "person waving", "collection_id": "col_abc123"}'
     ```
 
     PureFrame returns a ranked list of matching video segments. Each segment includes start and end timestamps, a relevance score, a direct clip URL, and a thumbnail.

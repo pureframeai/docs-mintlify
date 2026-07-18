@@ -1,5 +1,5 @@
 ---
-title: "PureFrame API Reference"
+title: "PureFrame REST API Reference Overview"
 sidebarTitle: "Overview"
 description: "Complete reference for the PureFrame REST API. Base URL, authentication, request/response format, pagination, and error codes."
 ---
@@ -48,7 +48,8 @@ Every response from the PureFrame API is wrapped in a consistent envelope with t
     "took_ms": 42,
     "total": null,
     "page": null,
-    "per_page": null
+    "per_page": null,
+    "facets": null
   }
 }
 ```
@@ -58,7 +59,7 @@ Every response from the PureFrame API is wrapped in a consistent envelope with t
 | Field | Type | Description |
 |-------|------|-------------|
 | `request_id` | string | Unique identifier for this request. Include this in support requests. |
-| `took_ms` | integer | Server-side processing time in milliseconds. |
+| `took_ms` | number | Server-side processing time in milliseconds. |
 | `total` | integer \| null | Total number of items available. Populated on list endpoints. |
 | `page` | integer \| null | Current page number. Populated on list endpoints. |
 | `per_page` | integer \| null | Number of items per page. Populated on list endpoints. |
