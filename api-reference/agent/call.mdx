@@ -1,0 +1,79 @@
+---
+title: "Invoke a PureFrame Agent Tool"
+sidebarTitle: "Agent Call"
+description: "POST /v1/agent/call — Invoke a PureFrame tool by name for AI agent and LLM integrations. Returns structured data including base64 thumbnails for vision models."
+---
+
+Invoke a PureFrame tool directly by name from your AI agent or LLM orchestration layer. When your LLM decides to call a PureFrame tool — based on the schema returned by [`GET /v1/agent/schema.json`](/api-reference/agent/schema) — forward the tool name and input arguments to this endpoint. PureFrame executes the tool and returns structured JSON results, including base64-encoded JPEG thumbnails where applicable so vision-capable models can interpret visual content inline.
+
+## Endpoint
+
+```
+POST https://api.pureframe.ai/v1/agent/call
+```
+
+**Authentication required:** Yes  
+**Content-Type:** `application/json`
+
+## Request Parameters
+
+<ParamField body="tool" type="string" required>
+  The name of the PureFrame tool to invoke. Must be one of: `search_videos`, `list_collections`, `get_collection`, `get_video`.
+</ParamField>
+
+<ParamField body="input" type="object">
+  The input arguments for the tool, as an object. The required and optional keys vary by tool — refer to the [Agent Schema](/api-reference/agent/schema) for each tool's parameter definition.
+</ParamField>
+
+## Request Example
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/agent/call \
+  -H "Authorization: Bearer pf_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"tool": "search_videos", "input": {"query": "person waving", "collection_id": "col_abc123"}}'
+```
+
+## Response
+
+Returns tool-specific JSON. The response structure depends on which tool was invoked.
+
+For `search_videos`, results include a `thumbnail_base64` field on each match — a base64-encoded JPEG of the best matching frame. This can be passed directly as image input to vision-capable models.
+
+<Note>
+  `search_videos` results include `thumbnail_base64`, a base64-encoded JPEG that GPT-4o and Claude can consume directly as vision input. Pass it in an image content block alongside the tool result to let the model visually verify or describe the matched frame.
+</Note>
+
+### Response Example (`search_videos`)
+
+```json
+{
+  "tool": "search_videos",
+  "results": [
+    {
+      "video_id": "vid_def456",
+      "collection_id": "col_abc123",
+      "score": 0.94,
+      "timestamp_seconds": 42.1,
+      "thumbnail_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD...",
+      "metadata": {
+        "title": "Product Demo Q4",
+        "duration_seconds": 183
+      }
+    },
+    {
+      "video_id": "vid_ghi789",
+      "collection_id": "col_abc123",
+      "score": 0.87,
+      "timestamp_seconds": 17.5,
+      "thumbnail_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD...",
+      "metadata": {
+        "title": "Onboarding Walkthrough",
+        "duration_seconds": 94
+      }
+    }
+  ]
+}
+```
+
+For a complete guide to integrating PureFrame tools into your LLM pipeline, including how to handle tool call responses and pass thumbnails to vision models, see the [AI Agent Integration guide](/guides/ai-agent-integration).

@@ -1,0 +1,87 @@
+---
+title: "Authenticate with the PureFrame API"
+sidebarTitle: "Authentication"
+description: "PureFrame uses Bearer API keys for authentication. Learn how to create, scope, and securely use your pf_... API keys in every request."
+---
+
+PureFrame authenticates every request using API keys in the format `pf_...`. You pass your key as a Bearer token in the `Authorization` header of each HTTP request. There are no sessions, cookies, or OAuth flows — every call is independently authenticated by the key you include.
+
+## Pass your API key
+
+Include your key in the `Authorization` header on every request:
+
+```bash
+curl https://api.pureframe.ai/v1/collections \
+  -H "Authorization: Bearer pf_your_api_key_here"
+```
+
+The following examples show the same header across common HTTP clients:
+
+<CodeGroup>
+
+```bash curl
+curl https://api.pureframe.ai/v1/collections \
+  -H "Authorization: Bearer pf_your_api_key_here"
+```
+
+```python Python
+import requests
+
+resp = requests.get(
+    "https://api.pureframe.ai/v1/collections",
+    headers={"Authorization": "Bearer pf_your_api_key_here"}
+)
+```
+
+```javascript JavaScript
+const resp = await fetch("https://api.pureframe.ai/v1/collections", {
+  headers: { "Authorization": "Bearer pf_your_api_key_here" }
+});
+```
+
+</CodeGroup>
+
+## Key permissions
+
+When you create an API key you assign it a permission scope. Choose the narrowest scope that your use case requires.
+
+| Scope | Access |
+|---|---|
+| `all` | Full read/write access to all endpoints. This is the default scope for new keys. Use it for server-side integrations where you control the environment. |
+| `read_only` | Search and list operations only — no uploads, deletions, or configuration changes. Use this scope for public-facing or embedded search experiences where the key may be exposed to end users. |
+
+<Warning>
+  The full value of your API key is shown **only once**, immediately after creation. PureFrame does not store the raw key and cannot show it to you again. Copy it to a secure secrets manager (such as AWS Secrets Manager, HashiCorp Vault, or your CI/CD environment's secrets store) before closing the creation dialog.
+</Warning>
+
+## Managing API keys
+
+You manage keys entirely through the API:
+
+- **Create a key** — `POST /v1/api_keys` with a `name` and optional `scope`. See the [Create API Key reference](/api-reference/api-keys/create) for the full request schema.
+- **List your keys** — `GET /v1/api_keys` returns all keys on your account, including their IDs, names, scopes, and creation timestamps. Key values are never returned in list responses.
+- **Revoke a key** — `DELETE /v1/api_keys/{key_id}` immediately and permanently invalidates the key. Any requests using a revoked key will start receiving `401 Unauthorized` responses.
+
+<Note>
+  Rotate keys regularly and revoke any key that may have been exposed. Because PureFrame authenticates purely by key value, a leaked key grants the same access as the legitimate holder until it is revoked.
+</Note>
+
+## Error handling
+
+If authentication fails, PureFrame returns one of two error responses:
+
+| Status | Meaning | Common causes |
+|---|---|---|
+| `401 Unauthorized` | The request could not be authenticated. | Missing `Authorization` header, malformed key format, or a revoked/deleted key. |
+| `403 Forbidden` | The request was authenticated but the key lacks permission to perform the action. | Using a `read_only` key to call a write endpoint such as `POST /v1/upload`. |
+
+Both responses include a JSON body with a `message` field describing the specific issue, for example:
+
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "Invalid or missing API key."
+  }
+}
+```

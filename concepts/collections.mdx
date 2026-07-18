@@ -1,0 +1,111 @@
+---
+title: "Collections: Organize Your Video Library"
+sidebarTitle: "Collections"
+description: "Collections are named groups of videos in PureFrame. Learn how to use collections to organize videos and scope searches to the right content."
+---
+
+Collections are the top-level organizational unit in PureFrame. Every video you upload belongs to a collection, and every search can be scoped to one. Use collections to keep your video library structured, isolate data between projects or customers, and make sure searches return only the content you care about.
+
+## Collection structure
+
+Each collection exposes the following fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Unique identifier for the collection |
+| `name` | string | Human-readable name (unique per account) |
+| `video_count` | integer | Number of videos currently in the collection |
+| `total_duration_secs` | number | Combined duration of all videos, in seconds |
+| `storage_bytes` | integer | Total storage used by the collection |
+| `created_at` | string (ISO 8601) | Timestamp when the collection was created |
+
+Collection names must be unique within your account and between 1 and 255 characters long.
+
+## When to use multiple collections
+
+You are not limited to a single collection. Consider creating separate collections when you need clear boundaries between data sets. Common patterns include:
+
+- **Per customer** — give each of your customers their own isolated collection so their videos and search results never mix
+- **Per project** — keep distinct projects, campaigns, or productions cleanly separated
+- **Per environment** — maintain separate collections for `development`, `staging`, and `production`
+- **Content categories** — split your library by content type, such as `interviews`, `tutorials`, or `product-demos`
+
+## Creating a collection
+
+Send a `POST` request to `/v1/collections` with a JSON body containing the collection `name`.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/collections \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{"name": "product-demos"}'
+```
+
+A successful response returns the new collection object:
+
+```json
+{
+  "id": "col_01hx3k9z2f8r4e7w",
+  "name": "product-demos",
+  "video_count": 0,
+  "total_duration_secs": 0,
+  "storage_bytes": 0,
+  "created_at": "2024-06-01T12:00:00Z"
+}
+```
+
+## Scoping searches to a collection
+
+Pass `collection_id` in your search request body to restrict results to a single collection. When you omit it, PureFrame searches across all collections in your account.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "product unboxing",
+    "collection_id": "col_01hx3k9z2f8r4e7w"
+  }'
+```
+
+## Retrieving collection details
+
+Fetch the current state of a collection — including its video count, total duration, and storage consumption — with a `GET` request:
+
+```bash
+curl https://api.pureframe.ai/v1/collections/col_01hx3k9z2f8r4e7w \
+  -H "Authorization: Bearer pf_..."
+```
+
+```json
+{
+  "id": "col_01hx3k9z2f8r4e7w",
+  "name": "product-demos",
+  "video_count": 42,
+  "total_duration_secs": 18340,
+  "storage_bytes": 10737418240,
+  "created_at": "2024-06-01T12:00:00Z"
+}
+```
+
+## Deleting a collection
+
+<Warning>
+  Deleting a collection **permanently removes all videos and indexed segments** it contains. This action cannot be undone and will immediately free the associated storage.
+</Warning>
+
+Send a `DELETE` request to `/v1/collections/{id}` to remove a collection and all of its contents:
+
+```bash
+curl -X DELETE https://api.pureframe.ai/v1/collections/col_01hx3k9z2f8r4e7w \
+  -H "Authorization: Bearer pf_..."
+```
+
+<Note>
+  Collection names must be unique per account and between 1 and 255 characters long. Attempting to create a collection with a name that already exists in your account returns a `409 Conflict` error.
+</Note>
+
+## Next steps
+
+- [Create a collection](/api-reference/collections/create) — full API reference
+- [List collections](/api-reference/collections/list) — retrieve all collections in your account

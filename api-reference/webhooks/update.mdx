@@ -1,0 +1,83 @@
+---
+title: "Update a Webhook Endpoint"
+sidebarTitle: "Update Endpoint"
+description: "PATCH /v1/webhooks/{endpoint_id} — Update the URL, subscribed events, or active status of an existing webhook endpoint."
+---
+
+Modify an existing webhook endpoint without deleting and recreating it. You can update the destination URL, replace the full list of subscribed event types, or toggle the endpoint's active status to pause and resume delivery — useful for maintenance windows or staged rollouts.
+
+## Endpoint
+
+```
+PATCH https://api.pureframe.ai/v1/webhooks/{endpoint_id}
+```
+
+**Authentication required:** Yes  
+**Content-Type:** `application/json`
+
+## Path Parameters
+
+<ParamField path="endpoint_id" type="string" required>
+  The unique identifier of the webhook endpoint to update (e.g. `wh_abc123`).
+</ParamField>
+
+## Request Body
+
+All request body fields are optional. Only the fields you include will be updated.
+
+<ParamField body="url" type="string">
+  A new HTTPS destination URL to replace the existing one. Must use `https://`.
+</ParamField>
+
+<ParamField body="events" type="array of strings">
+  A new list of event type strings. This **replaces** the existing event subscriptions entirely — include all event types you want to receive, not just the ones being added.
+</ParamField>
+
+<ParamField body="is_active" type="boolean">
+  Set to `false` to pause event delivery without deleting the endpoint. Set back to `true` to resume. Paused endpoints do not receive new deliveries, but their configuration is preserved.
+</ParamField>
+
+## Request Example
+
+```bash
+curl -X PATCH https://api.pureframe.ai/v1/webhooks/wh_abc123 \
+  -H "Authorization: Bearer pf_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://yourapp.com/hooks/pureframe-v2", "events": ["video.processed"], "is_active": true}'
+```
+
+## Response
+
+Returns `200 OK` with the full updated webhook endpoint object.
+
+<ResponseField name="id" type="string">
+  Unique identifier for the endpoint.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  The updated destination URL.
+</ResponseField>
+
+<ResponseField name="events" type="array of strings">
+  The updated list of subscribed event types.
+</ResponseField>
+
+<ResponseField name="is_active" type="boolean">
+  The updated active status of the endpoint.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp of when the endpoint was originally created.
+</ResponseField>
+
+## Response Example
+
+```json
+{
+  "id": "wh_abc123",
+  "url": "https://yourapp.com/hooks/pureframe-v2",
+  "events": ["video.processed"],
+  "is_active": true,
+  "created_at": "2024-11-01T10:00:00Z"
+}
+```

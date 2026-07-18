@@ -1,20 +1,62 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: "PureFrame: Semantic Video Search API"
+sidebarTitle: "Home"
+description: "Upload videos, index them for semantic search, and retrieve precise timestamped clips using text queries or reference images with the PureFrame API."
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+PureFrame is a video intelligence API that makes your video library fully searchable. Upload any video, let PureFrame index every frame and transcript, then query it with natural language or a reference image to instantly retrieve the exact timestamped clips you need.
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Make your first API call and run a search in under 5 minutes
+  </Card>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Learn how to create and use API keys to authenticate requests
+  </Card>
+  <Card title="Upload & Index" icon="cloud-arrow-up" href="/guides/upload-and-index">
+    Upload videos to a collection and track indexing progress
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/overview">
+    Explore every endpoint with request and response examples
+  </Card>
+</CardGroup>
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+## How PureFrame works
+
+<Steps>
+  <Step title="Create a collection">
+    Organize your videos into named collections. A collection is a searchable library — create one per project, customer, or content category.
+  </Step>
+  <Step title="Upload and index videos">
+    Upload video files in any common format (MP4, MOV, AVI, WebM, MKV). PureFrame processes each video asynchronously, indexing visual frames, scenes, and transcripts.
+  </Step>
+  <Step title="Search with text or images">
+    Query your collection using a text description or a reference image. PureFrame returns ranked, timestamped clips with presigned video URLs and thumbnails.
+  </Step>
+  <Step title="Integrate anywhere">
+    Use search results in your app, feed thumbnails to vision models, or hook into processing events via webhooks.
+  </Step>
+</Steps>
+
+## Explore the docs
+
+<CardGroup cols={3}>
+  <Card title="Collections" icon="folder" href="/concepts/collections">
+    Understand how to organize videos into searchable libraries
+  </Card>
+  <Card title="Videos & Indexing" icon="film" href="/concepts/videos-and-indexing">
+    Learn how video processing and indexing works
+  </Card>
+  <Card title="Search" icon="magnifying-glass" href="/concepts/search">
+    Explore search modes, ranking, and result structure
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/guides/webhooks">
+    Get notified when video processing completes
+  </Card>
+  <Card title="AI Agent Integration" icon="robot" href="/guides/ai-agent-integration">
+    Use PureFrame as a tool inside LLM-powered agents
+  </Card>
+  <Card title="API Keys" icon="lock" href="/api-reference/api-keys/list">
+    Manage scoped API keys for your account
+  </Card>
+</CardGroup>

@@ -1,0 +1,40 @@
+---
+title: "Send a Test Event to a Webhook Endpoint"
+sidebarTitle: "Test Endpoint"
+description: "POST /v1/webhooks/{endpoint_id}/test — Send a test event to your webhook URL to verify your server is receiving and processing events correctly."
+---
+
+Send a synthetic test event to a webhook endpoint to verify end-to-end connectivity and confirm your server is correctly receiving, parsing, and acknowledging PureFrame event payloads. The test event mirrors the structure of a real event but is clearly marked as a test so you can distinguish it from production traffic.
+
+## Endpoint
+
+```
+POST https://api.pureframe.ai/v1/webhooks/{endpoint_id}/test
+```
+
+**Authentication required:** Yes
+
+## Path Parameters
+
+<ParamField path="endpoint_id" type="string" required>
+  The unique identifier of the webhook endpoint to test (e.g. `wh_abc123`).
+</ParamField>
+
+## Request Example
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/webhooks/wh_abc123/test \
+  -H "Authorization: Bearer pf_your_key"
+```
+
+## Response
+
+Returns `202 Accepted`. PureFrame queues the test event for delivery — the actual delivery occurs asynchronously. You can verify receipt via the [Delivery History](/api-reference/webhooks/deliveries) endpoint.
+
+```
+HTTP/1.1 202 Accepted
+```
+
+<Tip>
+  Use this endpoint immediately after creating a new webhook to confirm your server processes the event payload correctly before going live. Check your server logs and verify you're returning a `2xx` response to PureFrame's delivery request.
+</Tip>

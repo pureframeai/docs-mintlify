@@ -1,47 +1,156 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with PureFrame in 5 Minutes"
+sidebarTitle: "Quickstart"
+description: "Create a collection, upload a video, wait for indexing, and run your first semantic search — all with the PureFrame API in under 5 minutes."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+This quickstart walks you through the core PureFrame workflow end to end: create a collection to hold your videos, upload a video file, wait for PureFrame to index it, then run a semantic search and get back timestamped clips. By the end you'll have made your first successful search request and seen exactly what the response looks like.
 
 ## Prerequisites
 
-Before you begin, you must have:
+- **An API key** — If you don't have one yet, see [Authentication](/authentication) to create your first `pf_...` key.
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+---
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Create a collection">
+    A collection is the container for your videos. Create one by sending a `POST` request to `/v1/collections` with a name.
 
     ```bash
-    npm install your-package
+    curl -X POST https://api.pureframe.ai/v1/collections \
+      -H "Authorization: Bearer pf_your_api_key_here" \
+      -H "Content-Type: application/json" \
+      -d '{"name": "my-first-collection"}'
+    ```
+
+    PureFrame responds with the new collection object. Copy the `id` — you'll need it in the next step.
+
+    ```json
+    {
+      "data": {
+        "id": "col_abc123",
+        "name": "my-first-collection",
+        "created_at": "2024-01-15T10:00:00Z"
+      },
+      "meta": {
+        "request_id": "req_xyz",
+        "took_ms": 42
+      }
+    }
     ```
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+
+  <Step title="Upload a video">
+    Upload a video file as multipart form data. Pass the `collection_id` from the previous step alongside the file.
 
     ```bash
-    your-cli init
+    curl -X POST https://api.pureframe.ai/v1/upload \
+      -H "Authorization: Bearer pf_your_api_key_here" \
+      -F "collection_id=col_abc123" \
+      -F "file=@/path/to/your/video.mp4"
+    ```
+
+    The response returns a `job_id` for tracking the indexing process and a `video_id` that permanently identifies this video in PureFrame.
+
+    ```json
+    {
+      "data": {
+        "job_id": "job_def456",
+        "video_id": "vid_ghi789",
+        "status": "queued"
+      },
+      "meta": {
+        "request_id": "req_abc",
+        "took_ms": 120
+      }
+    }
     ```
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+
+  <Step title="Poll for indexing completion">
+    PureFrame indexes videos asynchronously. Poll `GET /v1/jobs/{job_id}` until the `status` field reads `"done"`.
 
     ```bash
-    your-cli start
+    curl https://api.pureframe.ai/v1/jobs/job_def456 \
+      -H "Authorization: Bearer pf_your_api_key_here"
     ```
+
+    ```json
+    {
+      "data": {
+        "id": "job_def456",
+        "video_id": "vid_ghi789",
+        "status": "done",
+        "progress_pct": 100
+      },
+      "meta": {
+        "request_id": "req_jkl",
+        "took_ms": 8
+      }
+    }
+    ```
+
+    <Note>
+      Job status progresses through three stages: `queued` → `processing` → `done`. For production workloads, consider using [Webhooks](/guides/webhooks) instead of polling so PureFrame notifies your server the moment a job completes.
+    </Note>
+  </Step>
+
+  <Step title="Search the collection">
+    With your video indexed, run a semantic search. Send a `POST` request to `/v1/search` with a natural language `query` and the target `collection_id`.
+
+    ```bash
+    curl -X POST https://api.pureframe.ai/v1/search \
+      -H "Authorization: Bearer pf_your_api_key_here" \
+      -F "query=person waving" \
+      -F "collection_id=col_abc123"
+    ```
+
+    PureFrame returns a ranked list of matching video segments. Each segment includes start and end timestamps, a relevance score, a direct clip URL, and a thumbnail.
+
+    ```json
+    {
+      "data": [
+        {
+          "video_id": "vid_ghi789",
+          "filename": "demo.mp4",
+          "segments": [
+            {
+              "timestamp_start": 12.4,
+              "timestamp_end": 18.1,
+              "score": 0.94,
+              "type": "video",
+              "video_url": "https://...",
+              "thumbnail_url": "https://..."
+            }
+          ]
+        }
+      ],
+      "meta": {
+        "request_id": "req_mno",
+        "took_ms": 210,
+        "total": 1
+      }
+    }
+    ```
+
+    The `score` field ranges from `0` to `1`. A score of `0.94` indicates a very strong semantic match. Use `timestamp_start` and `timestamp_end` (in seconds) to seek directly to the matched clip in your player.
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+---
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+## Next steps
+
+Now that you've run your first search, explore the rest of the platform:
+
+<CardGroup cols={3}>
+  <Card title="Upload & Index" icon="cloud-arrow-up" href="/guides/upload-and-index">
+    Learn about batch uploads, supported formats, webhook notifications, and indexing configuration options.
+  </Card>
+  <Card title="Searching Videos" icon="magnifying-glass" href="/guides/searching-videos">
+    Explore text queries, image-based search, filtering by collection, and tuning relevance thresholds.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/overview">
+    Full reference documentation for every endpoint, parameter, and response field in the PureFrame API.
+  </Card>
+</CardGroup>

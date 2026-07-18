@@ -1,0 +1,198 @@
+---
+title: "Search Your Videos with Text and Images"
+sidebarTitle: "Searching Videos"
+description: "Run semantic searches across your PureFrame video collections using text queries, reference images, or both. Learn how to read results and tune ranking."
+---
+
+PureFrame's search engine understands the visual and spoken content of your videos at a semantic level. You can describe a scene in plain language, supply a reference image, or combine both — and PureFrame returns the exact moments in your library that match. This guide covers the search endpoint, result structure, ranking modes, and how to improve results over time with feedback.
+
+## The search endpoint
+
+All searches go through `POST /v1/search` using `multipart/form-data`. The endpoint accepts text queries, image uploads, image URLs, or any combination of these, and returns ranked video segments from a specified collection.
+
+---
+
+## Text search
+
+Pass a natural-language string in the `query` field to search by description:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_your_key" \
+  -F "query=person waving goodbye" \
+  -F "collection_id=col_abc123"
+```
+
+<Tip>
+  Add `natural_language=true` when the query is a full sentence rather than keywords (e.g. `"a child running toward the camera on a beach at sunset"`). This activates a sentence-optimized embedding path that typically improves recall on descriptive queries.
+</Tip>
+
+---
+
+## Image search
+
+Upload a reference image in the `image` field to find visually similar frames across your collection:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_your_key" \
+  -F "image=@/path/to/reference.jpg" \
+  -F "collection_id=col_abc123"
+```
+
+This is ideal for finding shots that match a specific composition, color palette, or subject appearance when you don't have words to describe it.
+
+---
+
+## Combined text + image search
+
+Supply both a `query` and an image reference to anchor the search visually while refining it semantically. Use `image_url` if the reference image is already hosted:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_your_key" \
+  -F "query=sunset scene" \
+  -F "image_url=https://example.com/reference.jpg" \
+  -F "collection_id=col_abc123"
+```
+
+You can also upload the image directly alongside the query using `-F "image=@/path/to/reference.jpg"` instead of `image_url`.
+
+---
+
+## Reading results
+
+The response contains a `results` array. Each element represents a matching video and contains a `segments` array of specific moments within that video.
+
+### Sample response
+
+```json
+{
+  "data": {
+    "query": "person waving goodbye",
+    "results": [
+      {
+        "video_id": "vid_ghi789",
+        "title": "conference_day2.mp4",
+        "segments": [
+          {
+            "timestamp_start": 142.5,
+            "timestamp_end": 148.0,
+            "score": 0.91,
+            "type": "video",
+            "text_content": null,
+            "video_url": "https://cdn.pureframe.ai/segments/seg_001.mp4?token=...",
+            "thumbnail_url": "https://cdn.pureframe.ai/thumbs/seg_001.jpg?token=..."
+          },
+          {
+            "timestamp_start": 203.0,
+            "timestamp_end": 207.5,
+            "score": 0.78,
+            "type": "transcript",
+            "text_content": "Alright, goodbye everyone, see you tomorrow!",
+            "video_url": "https://cdn.pureframe.ai/segments/seg_002.mp4?token=...",
+            "thumbnail_url": "https://cdn.pureframe.ai/thumbs/seg_002.jpg?token=..."
+          }
+        ]
+      }
+    ],
+    "page": 1,
+    "per_page": 10,
+    "total_results": 24
+  },
+  "meta": {
+    "request_id": "req_abc999",
+    "latency_ms": 183
+  }
+}
+```
+
+### Segment fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp_start` | `float` | Start of the segment in seconds |
+| `timestamp_end` | `float` | End of the segment in seconds |
+| `score` | `float` | Relevance score from 0 to 1. Higher is more relevant |
+| `type` | `string` | Source of the match: `video`, `transcript`, or `scene` |
+| `text_content` | `string \| null` | Transcript snippet when `type` is `transcript`; otherwise `null` |
+| `video_url` | `string` | Presigned URL to the segment clip. Valid for approximately 1 hour |
+| `thumbnail_url` | `string` | Presigned URL to a representative JPEG thumbnail |
+
+---
+
+## Choosing a search mode
+
+Use the `modes` form field to control which index types PureFrame searches and how it ranks results.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_your_key" \
+  -F "query=product close-up shot" \
+  -F "collection_id=col_abc123" \
+  -F 'modes=["video","transcript","scene"]' \
+  -F "ranking=fusion"
+```
+
+### Available modes
+
+| Mode value | What it searches |
+|------------|-----------------|
+| `video` | Per-frame visual embeddings |
+| `transcript` | Speech-to-text segments |
+| `scene` | Scene-level visual summaries |
+
+### Ranking strategies
+
+| Strategy | When to use |
+|----------|-------------|
+| `image_first` *(default)* | Appearance and scene-based queries where visuals dominate |
+| `fusion` | Mixed queries that combine visual and textual cues. Uses Reciprocal Rank Fusion (RRF) to merge results from each mode |
+
+---
+
+## Pagination
+
+Use `page` and `per_page` to paginate through large result sets:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_your_key" \
+  -F "query=product close-up shot" \
+  -F "collection_id=col_abc123" \
+  -F "page=2" \
+  -F "per_page=20"
+```
+
+The response always includes `page`, `per_page`, and `total_results` so you can calculate the number of available pages.
+
+---
+
+## Submitting relevance feedback
+
+Signal to PureFrame which results were useful and which weren't. The ranking model uses this feedback to improve results for your collection over time.
+
+Send feedback to `POST /v1/search/feedback`:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search/feedback \
+  -H "Authorization: Bearer pf_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_id": "vid_ghi789",
+    "timestamp_start": 142.5,
+    "signal": "positive",
+    "query": "person waving goodbye"
+  }'
+```
+
+| Field | Values | Description |
+|-------|--------|-------------|
+| `video_id` | string | The video the segment belongs to |
+| `timestamp_start` | float | Start timestamp of the segment you're rating |
+| `signal` | `"positive"` / `"negative"` | Whether the result was relevant |
+| `query` | string | The query that produced this result |
+
+<Note>
+  Feedback is scoped to your account and collection. It does not affect results for other PureFrame customers.
+</Note>

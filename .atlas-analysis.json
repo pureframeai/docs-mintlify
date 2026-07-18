@@ -1,20 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "name": "PureFrame",
+  "projectType": "api-service",
+  "projectName": "PureFrame",
+  "projectDescription": "PureFrame is a video intelligence API that lets you upload videos, index them for semantic search, and retrieve timestamped clips matching text queries or reference images.",
   "theme": "luma",
-  "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
-  },
-  "favicon": "/favicon.svg",
-  "navbar": {
-    "primary": {
-      "type": "button",
-      "label": "Get API Key",
-      "href": "https://pureframe.ai"
-    }
-  },
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
   "navigation": {
     "tabs": [
       {
@@ -113,9 +104,43 @@
       }
     ]
   },
-  "footer": {
-    "socials": {
-      "website": "https://pureframe.ai"
-    }
-  }
+  "keyFeatures": [
+    "Semantic video search by text query or reference image",
+    "Timestamped clip retrieval with presigned video and thumbnail URLs",
+    "Asynchronous video indexing with job polling",
+    "Collections for organizing videos",
+    "Multiple search modes: image_first and fusion (Reciprocal Rank Fusion)",
+    "Transcript-aware search with scene and video segment modes",
+    "Webhooks for real-time processing notifications",
+    "AI agent integration with OpenAI-compatible tool schema",
+    "FrameMap visual index for collection-level exploration",
+    "Read-only and full-access API key permissions"
+  ],
+  "publicApiSurface": [
+    "GET /v1/collections",
+    "POST /v1/collections",
+    "GET /v1/collections/{collection_id}",
+    "PATCH /v1/collections/{collection_id}",
+    "DELETE /v1/collections/{collection_id}",
+    "POST /v1/upload",
+    "GET /v1/jobs/{job_id}",
+    "GET /v1/videos",
+    "GET /v1/videos/{video_id}",
+    "DELETE /v1/videos/{video_id}",
+    "POST /v1/search",
+    "POST /v1/search/feedback",
+    "GET /v1/webhooks",
+    "POST /v1/webhooks",
+    "PATCH /v1/webhooks/{endpoint_id}",
+    "DELETE /v1/webhooks/{endpoint_id}",
+    "POST /v1/webhooks/{endpoint_id}/test",
+    "GET /v1/webhooks/{endpoint_id}/deliveries",
+    "POST /v1/webhooks/{endpoint_id}/deliveries/{delivery_id}/retry",
+    "GET /v1/agent/schema.json",
+    "POST /v1/agent/call",
+    "GET /v1/framemap",
+    "GET /v1/api_keys",
+    "POST /v1/api_keys",
+    "DELETE /v1/api_keys/{key_id}"
+  ]
 }

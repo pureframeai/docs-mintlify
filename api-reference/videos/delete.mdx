@@ -1,0 +1,38 @@
+---
+title: "Delete a Video and Its Indexed Segments"
+sidebarTitle: "Delete Video"
+description: "DELETE /v1/videos/{video_id} — Permanently delete a video and all its indexed segments from PureFrame. This action cannot be undone."
+---
+
+Permanently remove a video and every indexed segment associated with it from PureFrame. Once deleted, the video will no longer appear in collection listings, will be excluded from all future search results, and its storage will be freed from your account quota. If the video is still being processed when you issue this request, both the job and the partial data will be cancelled and cleaned up.
+
+## Endpoint
+
+**DELETE** `https://api.pureframe.ai/v1/videos/{video_id}`
+
+**Authentication:** Required — `Authorization: Bearer pf_...`
+
+## Path Parameters
+
+<ParamField path="video_id" type="string" required>
+  The unique identifier of the video to delete (e.g. `vid_7hWnBcYdZq`). Returned by `POST /v1/upload` and `GET /v1/videos`.
+</ParamField>
+
+<Warning>
+  This action **permanently deletes** the video file and all of its indexed segments from PureFrame. Deleted videos are immediately removed from search results and cannot be recovered. If you need the video again, you will have to re-upload and re-index it.
+</Warning>
+
+## Request Example
+
+```bash
+curl -X DELETE https://api.pureframe.ai/v1/videos/vid_7hWnBcYdZq \
+  -H "Authorization: Bearer pf_your_key"
+```
+
+## Response — 204 No Content
+
+A successful deletion returns `204 No Content` with an empty response body. No `data` or `meta` fields are returned.
+
+```
+HTTP/1.1 204 No Content
+```

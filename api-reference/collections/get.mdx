@@ -1,0 +1,113 @@
+---
+title: "Get Collection Details"
+sidebarTitle: "Get Collection"
+description: "GET /v1/collections/{collection_id} — Retrieve a collection's details including total video count, total duration, and storage usage in bytes."
+---
+
+Retrieve detailed information about a single collection by its ID. In addition to the basic fields returned by the list endpoint, this response includes the aggregate total duration of all videos in the collection and the total storage consumed in bytes — useful for capacity planning and displaying collection-level statistics in your UI.
+
+## Endpoint
+
+```http
+GET /v1/collections/{collection_id}
+```
+
+**Authentication required:** Yes — `Authorization: Bearer pf_your_key`
+
+## Path Parameters
+
+<ParamField path="collection_id" type="string" required>
+  The unique identifier of the collection to retrieve (e.g. `col_01hx9z2b3m4n5p6q7r8s9t0u`).
+</ParamField>
+
+## Request Example
+
+<CodeGroup>
+
+```bash cURL
+curl --request GET \
+  --url "https://api.pureframe.ai/v1/collections/col_01hx9z2b3m4n5p6q7r8s9t0u" \
+  --header "Authorization: Bearer pf_your_key"
+```
+
+```python Python
+import requests
+
+collection_id = "col_01hx9z2b3m4n5p6q7r8s9t0u"
+response = requests.get(
+    f"https://api.pureframe.ai/v1/collections/{collection_id}",
+    headers={"Authorization": "Bearer pf_your_key"},
+)
+print(response.json())
+```
+
+```javascript Node.js
+const collectionId = "col_01hx9z2b3m4n5p6q7r8s9t0u";
+const response = await fetch(
+  `https://api.pureframe.ai/v1/collections/${collectionId}`,
+  {
+    headers: {
+      Authorization: "Bearer pf_your_key",
+    },
+  }
+);
+const body = await response.json();
+console.log(body);
+```
+
+</CodeGroup>
+
+## Response
+
+Returns a `CollectionDetail` object inside the standard `data` envelope.
+
+<ResponseField name="id" type="string">
+  Unique identifier of the collection.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The human-readable name of the collection.
+</ResponseField>
+
+<ResponseField name="video_count" type="integer">
+  Total number of videos in this collection, including those still being indexed.
+</ResponseField>
+
+<ResponseField name="total_duration_secs" type="number">
+  Combined playback duration of all videos in the collection, in seconds. Videos still being processed contribute `0` to this total until indexing completes.
+</ResponseField>
+
+<ResponseField name="storage_bytes" type="integer">
+  Total storage consumed by all videos and their index data in this collection, expressed in bytes.
+</ResponseField>
+
+<ResponseField name="created_at" type="datetime">
+  ISO 8601 timestamp of when the collection was created.
+</ResponseField>
+
+## Response Example
+
+```json
+{
+  "data": {
+    "id": "col_01hx9z2b3m4n5p6q7r8s9t0u",
+    "name": "Product Demos",
+    "video_count": 142,
+    "total_duration_secs": 87432.5,
+    "storage_bytes": 214748364800,
+    "created_at": "2024-03-15T10:30:00Z"
+  },
+  "meta": {
+    "request_id": "req_get_col_def456",
+    "took_ms": 14,
+    "total": null,
+    "page": null,
+    "per_page": null,
+    "facets": null
+  }
+}
+```
+
+<Tip>
+  `storage_bytes` reflects raw storage consumed. To convert to a human-readable unit, divide by `1073741824` for gibibytes (GiB). For the example above: `214748364800 / 1073741824 ≈ 200 GiB`.
+</Tip>

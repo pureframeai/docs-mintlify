@@ -1,0 +1,131 @@
+---
+title: "Videos and Indexing in PureFrame"
+sidebarTitle: "Videos & Indexing"
+description: "Learn how PureFrame ingests and indexes video files, what formats are supported, how to track processing progress, and what video metadata is available."
+---
+
+When you upload a video to PureFrame, it goes through an asynchronous indexing pipeline. PureFrame extracts visual frames, runs speech-to-text transcription, and detects scene boundaries — then stores searchable embeddings for each. Once indexing finishes, every frame, spoken word, and scene in the video becomes instantly searchable.
+
+## Supported formats
+
+PureFrame accepts the following video formats:
+
+<CardGroup cols={3}>
+  <Card title="MP4" icon="film" />
+  <Card title="MOV" icon="film" />
+  <Card title="AVI" icon="film" />
+  <Card title="WebM" icon="film" />
+  <Card title="MPEG" icon="film" />
+  <Card title="MKV" icon="film" />
+</CardGroup>
+
+## Asynchronous processing
+
+Video indexing takes time, so the upload endpoint returns immediately with a `job_id` rather than waiting for processing to complete. Use that `job_id` to poll the jobs endpoint and track progress.
+
+```bash
+# 1. Upload a video
+curl -X POST https://api.pureframe.ai/v1/videos \
+  -H "Authorization: Bearer pf_..." \
+  -F "file=@/path/to/video.mp4" \
+  -F "collection_id=col_01hx3k9z2f8r4e7w"
+```
+
+```json
+{
+  "job_id": "job_01hx4m2p7n9q6t3r",
+  "status": "queued"
+}
+```
+
+```bash
+# 2. Poll for status
+curl https://api.pureframe.ai/v1/jobs/job_01hx4m2p7n9q6t3r \
+  -H "Authorization: Bearer pf_..."
+```
+
+```json
+{
+  "job_id": "job_01hx4m2p7n9q6t3r",
+  "status": "processing",
+  "progress_pct": 47
+}
+```
+
+## Job status lifecycle
+
+A job moves through the following states from upload to completion:
+
+```
+queued → processing → done
+                    ↘ failed
+```
+
+| Status | Description |
+|---|---|
+| `queued` | The video has been received and is waiting for an available worker |
+| `processing` | Indexing is actively in progress; check `progress_pct` (0–100) for granular progress |
+| `done` | Indexing is complete; the video is fully searchable |
+| `failed` | Processing encountered an unrecoverable error; check the `error` field for details |
+
+<Tip>
+  Use the `webhook_url` parameter when uploading to receive a POST notification the moment processing finishes, instead of repeatedly polling the jobs endpoint.
+
+  ```bash
+  curl -X POST https://api.pureframe.ai/v1/videos \
+    -H "Authorization: Bearer pf_..." \
+    -F "file=@/path/to/video.mp4" \
+    -F "collection_id=col_01hx3k9z2f8r4e7w" \
+    -F "webhook_url=https://yourapp.example.com/webhooks/pureframe"
+  ```
+</Tip>
+
+## Video metadata
+
+Once a job reaches `done` status, the video object includes the following metadata fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `duration_secs` | number | Length of the video in seconds |
+| `width` | integer | Frame width in pixels |
+| `height` | integer | Frame height in pixels |
+| `fps` | number | Frames per second |
+| `codec` | string | Video codec (e.g., `h264`, `vp9`) |
+| `mime_type` | string | MIME type of the source file (e.g., `video/mp4`) |
+| `file_size_bytes` | integer | Original upload file size |
+| `storage_bytes` | integer | Storage consumed after processing |
+| `segments_count` | integer | Number of indexed segments generated from the video |
+| `thumbnail_url` | string | URL of an auto-generated thumbnail image |
+| `playback_url` | string | Presigned URL for streaming playback (valid ~1 hour) |
+
+## Search modes enabled after indexing
+
+Indexing a video enables three complementary search modes, each targeting a different layer of content:
+
+<AccordionGroup>
+  <Accordion title="video — visual frame-level indexing">
+    PureFrame samples frames throughout the video and generates visual embeddings for each. This lets you find moments that *look* like a query image or match a visual description.
+  </Accordion>
+  <Accordion title="transcript — speech-to-text indexing">
+    PureFrame transcribes all spoken audio and indexes the resulting text. Use this mode to find moments where specific words or phrases are spoken.
+  </Accordion>
+  <Accordion title="scene — scene-level visual groupings">
+    PureFrame detects scene boundaries and creates a higher-level visual summary for each scene. This helps surface broader contextual matches when frame-level precision isn't required.
+  </Accordion>
+</AccordionGroup>
+
+## Deleting a video
+
+<Warning>
+  Deleting a video **permanently removes the video file and all of its indexed segments**. Search results will no longer return any moments from the deleted video. This action cannot be undone.
+</Warning>
+
+```bash
+curl -X DELETE https://api.pureframe.ai/v1/videos/vid_01hx5n3q8m7r2k1p \
+  -H "Authorization: Bearer pf_..."
+```
+
+## Next steps
+
+- [Upload and index your first video](/guides/upload-and-index) — step-by-step guide
+- [Upload video API reference](/api-reference/videos/upload) — full parameter documentation

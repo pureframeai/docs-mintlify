@@ -1,0 +1,121 @@
+---
+title: "Rename a Collection"
+sidebarTitle: "Update Collection"
+description: "PATCH /v1/collections/{collection_id} — Rename an existing collection. The new name must not conflict with an existing collection name on your account."
+---
+
+Rename an existing collection by sending a `PATCH` request with the new name. All videos, indexed segments, and associated metadata within the collection are unaffected — only the collection's display name changes. The updated `Collection` object is returned with the new name reflected immediately.
+
+## Endpoint
+
+```http
+PATCH /v1/collections/{collection_id}
+```
+
+**Authentication required:** Yes — `Authorization: Bearer pf_your_key`  
+**Content-Type:** `application/json`
+
+## Path Parameters
+
+<ParamField path="collection_id" type="string" required>
+  The unique identifier of the collection to rename (e.g. `col_01hx9z2b3m4n5p6q7r8s9t0u`).
+</ParamField>
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  The new name for the collection. Must be between 1 and 255 characters and must not match the name of any other collection on your account.
+</ParamField>
+
+## Request Example
+
+<CodeGroup>
+
+```bash cURL
+curl --request PATCH \
+  --url "https://api.pureframe.ai/v1/collections/col_01hx9z2b3m4n5p6q7r8s9t0u" \
+  --header "Authorization: Bearer pf_your_key" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "name": "Product Demos — Q2 2024"
+  }'
+```
+
+```python Python
+import requests
+
+collection_id = "col_01hx9z2b3m4n5p6q7r8s9t0u"
+response = requests.patch(
+    f"https://api.pureframe.ai/v1/collections/{collection_id}",
+    headers={
+        "Authorization": "Bearer pf_your_key",
+        "Content-Type": "application/json",
+    },
+    json={"name": "Product Demos — Q2 2024"},
+)
+print(response.json())
+```
+
+```javascript Node.js
+const collectionId = "col_01hx9z2b3m4n5p6q7r8s9t0u";
+const response = await fetch(
+  `https://api.pureframe.ai/v1/collections/${collectionId}`,
+  {
+    method: "PATCH",
+    headers: {
+      Authorization: "Bearer pf_your_key",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name: "Product Demos — Q2 2024" }),
+  }
+);
+const body = await response.json();
+console.log(body);
+```
+
+</CodeGroup>
+
+## Response
+
+Returns the updated `Collection` object with HTTP `200 OK`.
+
+<ResponseField name="id" type="string">
+  Unique identifier of the collection. Unchanged by the rename.
+</ResponseField>
+
+<ResponseField name="user_id" type="string">
+  The ID of the account that owns this collection.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The new name of the collection, as provided in the request body.
+</ResponseField>
+
+<ResponseField name="created_at" type="datetime">
+  ISO 8601 timestamp of when the collection was originally created. Unchanged by the rename.
+</ResponseField>
+
+## Response Example
+
+```json
+{
+  "data": {
+    "id": "col_01hx9z2b3m4n5p6q7r8s9t0u",
+    "user_id": "usr_09wv8u7t6s5r4q3p2o1n0m",
+    "name": "Product Demos — Q2 2024",
+    "created_at": "2024-03-15T10:30:00Z"
+  },
+  "meta": {
+    "request_id": "req_patch_col_ghi789",
+    "took_ms": 22,
+    "total": null,
+    "page": null,
+    "per_page": null,
+    "facets": null
+  }
+}
+```
+
+<Note>
+  Renaming a collection to a name already used by another collection on your account returns `422 Validation Error`. Use [List Collections](/api-reference/collections/list) to check existing names before renaming.
+</Note>

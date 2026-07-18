@@ -1,0 +1,74 @@
+---
+title: "Delete a Collection and All Its Videos"
+sidebarTitle: "Delete Collection"
+description: "DELETE /v1/collections/{collection_id} — Permanently delete a collection and all its videos and indexed segments. This action cannot be undone."
+---
+
+Permanently delete a collection along with every video, indexed segment, and associated metadata it contains. This is a hard delete — there is no soft-delete or recovery mechanism. If you only want to remove individual videos, use the [Delete Video](/api-reference/videos/delete) endpoint instead.
+
+## Endpoint
+
+```http
+DELETE /v1/collections/{collection_id}
+```
+
+**Authentication required:** Yes — `Authorization: Bearer pf_your_key`
+
+## Path Parameters
+
+<ParamField path="collection_id" type="string" required>
+  The unique identifier of the collection to delete (e.g. `col_01hx9z2b3m4n5p6q7r8s9t0u`).
+</ParamField>
+
+<Warning>
+  **This action is irreversible.** Deleting a collection permanently destroys all videos, indexed segments, thumbnails, and search index data it contains. There is no way to recover this data after deletion. Ensure you have exported or backed up any content you wish to retain before proceeding.
+</Warning>
+
+## Request Example
+
+<CodeGroup>
+
+```bash cURL
+curl --request DELETE \
+  --url "https://api.pureframe.ai/v1/collections/col_01hx9z2b3m4n5p6q7r8s9t0u" \
+  --header "Authorization: Bearer pf_your_key"
+```
+
+```python Python
+import requests
+
+collection_id = "col_01hx9z2b3m4n5p6q7r8s9t0u"
+response = requests.delete(
+    f"https://api.pureframe.ai/v1/collections/{collection_id}",
+    headers={"Authorization": "Bearer pf_your_key"},
+)
+# Successful deletion returns 204 No Content with an empty body
+print(response.status_code)  # 204
+```
+
+```javascript Node.js
+const collectionId = "col_01hx9z2b3m4n5p6q7r8s9t0u";
+const response = await fetch(
+  `https://api.pureframe.ai/v1/collections/${collectionId}`,
+  {
+    method: "DELETE",
+    headers: {
+      Authorization: "Bearer pf_your_key",
+    },
+  }
+);
+// Successful deletion returns 204 No Content with an empty body
+console.log(response.status); // 204
+```
+
+</CodeGroup>
+
+## Response
+
+On success, the API returns **`204 No Content`** with an empty response body. No `data` or `meta` envelope is returned.
+
+| Status | Body | Meaning |
+|--------|------|---------|
+| `204 No Content` | *(empty)* | Collection and all its contents were permanently deleted. |
+| `404 Not Found` | JSON error object | No collection with the given ID exists on your account. |
+| `401 Unauthorized` | JSON error object | Missing or invalid API key. |

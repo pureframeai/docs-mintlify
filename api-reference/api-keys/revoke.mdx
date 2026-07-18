@@ -1,0 +1,40 @@
+---
+title: "Revoke an API Key"
+sidebarTitle: "Revoke API Key"
+description: "DELETE /v1/api_keys/{key_id} — Permanently revoke an API key. Revoked keys are rejected immediately and cannot be reactivated."
+---
+
+Permanently revoke an API key, preventing it from being used to authenticate any further requests. Revocation takes effect immediately — any in-flight or subsequent request using the revoked key will be rejected with a `401 Unauthorized` response. The key's metadata (name, prefix, timestamps) remains visible in [List API Keys](/api-reference/api-keys/list) with a `revoked_at` timestamp for audit purposes.
+
+## Endpoint
+
+```
+DELETE https://api.pureframe.ai/v1/api_keys/{key_id}
+```
+
+**Authentication required:** Yes
+
+## Path Parameters
+
+<ParamField path="key_id" type="string" required>
+  The unique identifier of the API key to revoke (e.g. `key_abc123`). Find this via [List API Keys](/api-reference/api-keys/list).
+</ParamField>
+
+<Warning>
+  Revoked keys are rejected **immediately** and **cannot be reactivated**. If you need continued access, [create a new API key](/api-reference/api-keys/create) before revoking the old one to avoid downtime.
+</Warning>
+
+## Request Example
+
+```bash
+curl -X DELETE https://api.pureframe.ai/v1/api_keys/key_abc123 \
+  -H "Authorization: Bearer pf_your_key"
+```
+
+## Response
+
+Returns `204 No Content` on success. The response body is empty.
+
+```
+HTTP/1.1 204 No Content
+```
