@@ -14,8 +14,8 @@
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Get API Key",
-      "href": "https://pureframe.ai"
+      "label": "API Platform",
+      "href": "https://platform.pureframe.ai"
     },
     "links": [
       {
