@@ -1,0 +1,78 @@
+---
+title: FAQ
+description: Frequently asked questions about Pureframe AI.
+---
+
+## Getting started
+
+**Do I need to create a collection before uploading?**
+
+Yes. Every video must belong to a collection. Create one with `POST /v1/collections` first, then pass its `id` as `collection_id` in the upload request.
+
+**How do I get an API key?**
+
+Go to [platform.pureframe.ai/settings/api-keys](https://platform.pureframe.ai/settings/api-keys), click **New Key**, and copy it. Keys are only shown once.
+
+---
+
+## Upload and processing
+
+**What video formats are supported?**
+
+MP4, MOV, AVI, WebM, MPEG, and MKV. Maximum file size is 5 GB per upload. To increase the upload limit, [contact us](https://pureframe.ai/contact).
+
+**How long does indexing take?**
+
+Typically 1–3 minutes per 10 minutes of video, depending on server load. Poll `GET /v1/jobs/{job_id}` to track progress — see [Processing Status](/video-processing/processing-status).
+
+**Can I search a video before it finishes processing?**
+
+No. The video is only searchable once its job status reaches `done`. Searching before that returns no results for that video.
+
+**What happens if processing fails?**
+
+The job status becomes `failed`. Re-upload the video to create a new job. If failures persist, contact support.
+
+---
+
+## Search
+
+**Can I search across all my videos at once?**
+
+For image search, yes — omit `collection_id` to search your entire library. Text search currently requires `collection_id`.
+
+**What does `thumbnail_base64` contain?**
+
+A base64-encoded JPEG image of the matched video frame. Vision-capable models (Claude, GPT-4o, Gemini) can consume it directly in the same API call without fetching a URL. It's designed for agent integrations where the model needs to see the frame immediately.
+
+**Why are presigned URLs only valid for ~1 hour?**
+
+`video_url` and `thumbnail_url` are short-lived presigned URLs for security. Don't store them — store the `video_id` and re-fetch the URL when you need to display or stream it.
+
+**What signal types can a search match?**
+
+Four: `frame` (visual content), `transcript` (spoken words), `scene` (auto-detected scene labels, Pro/Enterprise), and `ocr` (text visible in the frame). The `modes` request parameter controls video, transcript, and scene; OCR matches surface independent of `modes`. See [Combined Queries](/search/combined-queries).
+
+---
+
+## Agent Vision
+
+**Which AI clients support the Pureframe AI MCP server?**
+
+Claude Desktop, Claude Code, Claude.ai (via remote MCP), Cursor, VS Code, Codex, and OpenCode. Any client that supports MCP should work.
+
+**Do I need to install anything for remote MCP?**
+
+No. The remote MCP server at `https://mcp.pureframe.ai` runs on Pureframe AI's infrastructure. Just add the URL and your API key to your client config.
+
+---
+
+## Billing
+
+**How are credits consumed?**
+
+Each search request consumes 1 credit on Pro accounts. Video processing costs $0.038 per minute of video, plus $0.005/minute if captioning is enabled. Free accounts have a daily search quota of 10 and 100 MB of storage — no credits needed. See [Usage and Billing](/production/usage-and-billing).
+
+**What happens when I run out of credits?**
+
+Searches return a `402` with code `INSUFFICIENT_CREDITS`. Add credits from the [Billing page](https://platform.pureframe.ai/billing) or enable auto top-up.

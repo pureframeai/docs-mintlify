@@ -1,0 +1,184 @@
+---
+title: Connect an Agent
+description: Per-client setup for the Pureframe AI MCP server.
+---
+
+All clients below use the same underlying local server, started via `npx -y @pureframeai/mcp`, with one required environment variable: `PUREFRAME_API_KEY` (see [API Keys](/get-started/api-keys)). Use a `read_only` key for agent integrations that only need to search.
+
+<Tabs>
+  <Tab title="Claude Code">
+
+Run this once:
+
+```bash
+claude mcp add pureframe -- npx -y @pureframeai/mcp
+```
+
+Or add it manually to `~/.claude.json`:
+
+```json
+{
+  "mcpServers": {
+    "pureframe": {
+      "command": "npx",
+      "args": ["-y", "@pureframeai/mcp"],
+      "env": { "PUREFRAME_API_KEY": "pf_..." }
+    }
+  }
+}
+```
+
+Try it: *"Search my videos for a customer mentioning pricing objections."*
+
+  </Tab>
+  <Tab title="Claude Desktop">
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "pureframe": {
+      "command": "npx",
+      "args": ["-y", "@pureframeai/mcp"],
+      "env": { "PUREFRAME_API_KEY": "pf_..." }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. Try it: *"List my video collections."*
+
+  </Tab>
+  <Tab title="Cursor">
+
+Add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "pureframe": {
+      "command": "npx",
+      "args": ["-y", "@pureframeai/mcp"],
+      "env": { "PUREFRAME_API_KEY": "pf_..." }
+    }
+  }
+}
+```
+
+Try it: *"Find a clip of someone pointing at a whiteboard."*
+
+  </Tab>
+  <Tab title="VS Code">
+
+Add to `.vscode/mcp.json`. Note the root key is `servers`, not `mcpServers`:
+
+```json
+{
+  "servers": {
+    "pureframe": {
+      "command": "npx",
+      "args": ["-y", "@pureframeai/mcp"],
+      "env": { "PUREFRAME_API_KEY": "pf_..." }
+    }
+  }
+}
+```
+
+Open Copilot Chat, switch to Agent mode, and try it: *"Search our demo videos for the pricing slide."*
+
+  </Tab>
+  <Tab title="Codex">
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.pureframe]
+command = "npx"
+args = ["-y", "@pureframeai/mcp"]
+
+[mcp_servers.pureframe.env]
+PUREFRAME_API_KEY = "pf_..."
+```
+
+Try it: *"Get details on the video with the highest storage usage."*
+
+  </Tab>
+  <Tab title="OpenCode">
+
+Add to `opencode.json` in your project root:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "pureframe": {
+      "type": "local",
+      "command": ["npx", "-y", "@pureframeai/mcp"],
+      "environment": { "PUREFRAME_API_KEY": "pf_..." }
+    }
+  }
+}
+```
+
+Try it: *"Search my footage for a whiteboard diagram."*
+
+  </Tab>
+</Tabs>
+
+## Config file locations
+
+| Client | Config file | Root key |
+|--------|--------------|----------|
+| Claude Code | `~/.claude.json` | `mcpServers` |
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` | `mcpServers` |
+| Cursor | `.cursor/mcp.json` | `mcpServers` |
+| VS Code | `.vscode/mcp.json` | `servers` |
+| Codex | `~/.codex/config.toml` | `mcp_servers.<name>` (TOML table) |
+| OpenCode | `opencode.json` | `mcp` |
+
+## Remote MCP (no install)
+
+For clients that support remote MCP endpoints, including Claude.ai web, skip the local `npx` process entirely and point at Pureframe AI's hosted Worker:
+
+```json
+{
+  "mcpServers": {
+    "pureframe": {
+      "url": "https://mcp.pureframe.ai",
+      "headers": { "Authorization": "Bearer pf_..." }
+    }
+  }
+}
+```
+
+The remote endpoint can't read your local filesystem, so `upload_video` isn't available there — only on the local `npx` server.
+
+## Scoping to a collection
+
+Pass `collection_id` to `search_videos` to limit results to one library. Call `list_collections` first to discover available IDs:
+
+```json
+{
+  "tool": "search_videos",
+  "input": {
+    "query": "customer objection about pricing",
+    "collection_id": "col_abc123",
+    "limit": 5
+  }
+}
+```
+
+## Rate limits
+
+Agent tool calls share the same limits as the REST API — 30 requests/minute for `search_videos`. See [Rate Limits](/production/rate-limits).
+
+## Troubleshooting
+
+**Client doesn't detect the server** — restart the client after editing its config file. For Claude Code, confirm with `claude mcp list`.
+
+**"Invalid API key" errors** — check that `PUREFRAME_API_KEY` (or the `Authorization` header for remote MCP) is set correctly and hasn't been revoked in [API Keys](/get-started/api-keys).
+
+**No results returned** — the query may not match any indexed content, or `collection_id` may be scoping the search too narrowly. Try `list_collections` first, or omit `collection_id` to search the whole library.
+
+**`npx` command not found** — the local server requires Node.js. Install it, or use the remote MCP endpoint instead, which requires no local runtime.

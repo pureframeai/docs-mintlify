@@ -1,0 +1,37 @@
+---
+title: Rate Limits
+description: Per-key request limits and how to handle 429s.
+---
+
+Rate limits are applied per API key. Exceeding a limit returns `429 Too Many Requests`.
+
+| Endpoint group | Limit |
+|----------------|-------|
+| `POST /v1/search` | 30 requests / minute |
+| `POST /v1/upload` | 10 requests / minute |
+| `GET /v1/jobs/*` | 60 requests / minute |
+| `GET /v1/videos/*` | 60 requests / minute |
+| Collections (read) | 60 requests / minute |
+| Collections (write) | 20 requests / minute |
+| API Keys | 10 requests / minute |
+| Agent tools | 30 requests / minute |
+
+These are throughput protections against abuse of a single key, not a signal about system capacity — see [Performance](/production/performance).
+
+## Handling 429s
+
+Retry with exponential backoff. The response includes a `Retry-After` header (in seconds) when the limit is time-based.
+
+```python
+import time, httpx
+
+def search_with_retry(client, payload, max_retries=3):
+    for attempt in range(max_retries):
+        resp = client.post("/v1/search", data=payload)
+        if resp.status_code == 429:
+            wait = int(resp.headers.get("Retry-After", 2 ** attempt))
+            time.sleep(wait)
+            continue
+        resp.raise_for_status()
+        return resp.json()
+```

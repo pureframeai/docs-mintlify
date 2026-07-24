@@ -1,0 +1,260 @@
+---
+title: Quickstart
+description: Upload your first video and run your first search in under 5 minutes.
+---
+
+<Tabs>
+  <Tab title="Search">
+
+## Prerequisites
+
+You'll need an API key. Get one at [platform.pureframe.ai/settings/api-keys](https://platform.pureframe.ai/settings/api-keys).
+
+All examples use `curl`. Swap in your own key where you see `pf_...`.
+
+---
+
+## Step 1 — Create a collection
+
+Every video must belong to a collection. Create one first:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/collections \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "My footage" }'
+```
+
+```json
+{
+  "data": {
+    "id": "col_abc123",
+    "name": "My footage",
+    "video_count": 0,
+    "created_at": "2025-01-01T12:00:00Z"
+  }
+}
+```
+
+Save the `id` — you'll use it in the next step.
+
+## Step 2 — Upload a video
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/upload \
+  -H "Authorization: Bearer pf_..." \
+  -F "collection_id=col_abc123" \
+  -F "file=@footage.mp4"
+```
+
+```json
+{
+  "data": {
+    "job_id": "job_xyz789",
+    "video_id": "vid_def456",
+    "status": "queued"
+  }
+}
+```
+
+Save the `job_id`.
+
+## Step 3 — Wait for indexing
+
+Poll until `status` is `done`. A 10-minute video typically takes 1–3 minutes.
+
+```bash
+curl https://api.pureframe.ai/v1/jobs/job_xyz789 \
+  -H "Authorization: Bearer pf_..."
+```
+
+```json
+{
+  "data": {
+    "job_id": "job_xyz789",
+    "status": "done",
+    "progress_pct": 100
+  }
+}
+```
+
+<Tip>
+  In production, use exponential backoff — poll at 5s, 10s, 20s intervals rather than a tight loop.
+</Tip>
+
+## Step 4 — Search
+
+Send a text query. Pureframe AI searches visual content and speech simultaneously.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=person waving at the camera" \
+  -F "collection_id=col_abc123"
+```
+
+```json
+{
+  "data": [
+    {
+      "video_id": "vid_def456",
+      "filename": "footage.mp4",
+      "segments": [
+        {
+          "timestamp_start": 42.5,
+          "timestamp_end": 47.0,
+          "score": 0.91,
+          "text_content": "Hey everyone, welcome back!",
+          "video_url": "https://...",
+          "thumbnail_url": "https://..."
+        }
+      ]
+    }
+  ],
+  "meta": { "total": 1 }
+}
+```
+
+Each result gives you:
+
+| Field | Description |
+|-------|-------------|
+| `timestamp_start` / `timestamp_end` | Where in the video this moment occurs (seconds) |
+| `score` | Relevance from 0 to 1 |
+| `text_content` | Transcribed speech in this clip, if any |
+| `video_url` | Presigned URL to stream the video (valid ~1 hour) |
+| `thumbnail_url` | Presigned URL to the matched frame image |
+
+## Step 5 — Search with an image
+
+You can also search using a reference image to find visually similar moments:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "image=@reference.jpg"
+```
+
+Or supply a public image URL:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "image_url=https://example.com/reference.jpg"
+```
+
+  </Tab>
+  <Tab title="Agent Vision">
+
+## Prerequisites
+
+You'll need an API key. Get one at [platform.pureframe.ai/settings/api-keys](https://platform.pureframe.ai/settings/api-keys).
+
+---
+
+## Option A — MCP (fastest)
+
+Install the Pureframe AI MCP server into your AI client in one step.
+
+**Claude Desktop** — add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "pureframe": {
+      "command": "npx",
+      "args": ["-y", "@pureframeai/mcp"],
+      "env": { "PUREFRAME_API_KEY": "pf_..." }
+    }
+  }
+}
+```
+
+**Claude Code** — run once:
+
+```bash
+claude mcp add pureframe -- npx -y @pureframeai/mcp
+```
+
+Restart your client. The agent can now call `search_videos`, `list_collections`, `get_collection`, and `get_video` directly.
+
+---
+
+## Option B — Remote MCP (no install)
+
+For Claude.ai or any client that supports remote MCP endpoints:
+
+```json
+{
+  "mcpServers": {
+    "pureframe": {
+      "url": "https://mcp.pureframe.ai",
+      "headers": { "Authorization": "Bearer pf_..." }
+    }
+  }
+}
+```
+
+---
+
+## Option C — Function calling (Python)
+
+Fetch the OpenAI-compatible schema once and wire it to any LLM:
+
+```python
+import anthropic, httpx
+
+pf_headers = {"Authorization": "Bearer pf_..."}
+
+# Get the tool schema
+schema = httpx.get(
+    "https://api.pureframe.ai/v1/agent/schema.json",
+    headers=pf_headers
+).json()
+
+# Ask Claude to use Pureframe AI tools
+client = anthropic.Anthropic()
+response = client.messages.create(
+    model="claude-opus-4-7",
+    max_tokens=1024,
+    tools=schema,
+    messages=[{"role": "user", "content": "Find clips of the presenter showing a demo"}]
+)
+```
+
+When the model calls `search_videos`, execute it:
+
+```python
+import json
+
+for block in response.content:
+    if block.type == "tool_use" and block.name == "search_videos":
+        result = httpx.post(
+            "https://api.pureframe.ai/v1/agent/call",
+            headers=pf_headers,
+            json={"tool": "search_videos", "input": block.input}
+        ).json()
+        # result["data"] contains clips with thumbnail_base64
+```
+
+`thumbnail_base64` is a base64 JPEG you can pass directly to any vision model — no URL fetching needed.
+
+  </Tab>
+</Tabs>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Search" icon="magnifying-glass" href="/search/overview">
+    Search modes, multimodal inputs, and pagination.
+  </Card>
+  <Card title="Collections" icon="layer-group" href="/video-processing/collections">
+    Organize videos and scope searches to a specific library.
+  </Card>
+  <Card title="Agent Vision" icon="robot" href="/agents/agent-vision">
+    Full guide to MCP and function calling integrations.
+  </Card>
+  <Card title="API Reference" icon="book-open" href="/api-reference/overview">
+    Every endpoint, parameter, and response field.
+  </Card>
+</CardGroup>

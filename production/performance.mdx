@@ -1,0 +1,28 @@
+---
+title: Performance
+description: How Pureframe AI keeps search fast, and what affects latency.
+---
+
+## Query embedding cache
+
+Repeated text queries don't re-run the embedding model. Pureframe AI caches the last 512 encoded queries — an exact repeat of a recent query skips encoding entirely and goes straight to the vector search step.
+
+## Parallel modality search
+
+When multiple modes are active (the default), Pureframe AI doesn't run them sequentially. Vector search (Qdrant) and full-text search (Postgres) execute concurrently, and their results are merged afterward with Reciprocal Rank Fusion. Total latency is bounded by the slower of the two, not their sum.
+
+## Off-path billing and logging
+
+Credit deduction and search logging happen as background tasks after the response is prepared — they don't sit in the critical path of a search request. A slow billing write never adds latency to the search results you get back.
+
+## What affects your latency
+
+- **Repeated queries** are fastest — the embedding cache means encoding is nearly free on a cache hit
+- **Collection-scoped searches** (passing `collection_id`) are faster and more precise than searching your entire library, since fewer vectors need to be compared
+- **Library size** affects vector search time — very large libraries (hundreds of thousands of indexed frames) take longer per query than small ones, though this scales sub-linearly due to the vector index structure
+- **Image search** carries the added cost of image encoding, which is somewhat slower than text query encoding
+- **Natural language queries** (`natural_language=true`) add an LLM decomposition round-trip before the underlying search runs — typically 150–300ms
+
+## Rate limits, not throughput limits
+
+Search performance and [rate limits](/production/rate-limits) are separate concerns — rate limits exist to prevent abuse of a single API key, not because of a performance ceiling. Staying under your rate limit doesn't mean you're leaving performance on the table.

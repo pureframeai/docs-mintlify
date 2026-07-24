@@ -1,0 +1,35 @@
+---
+title: Embeddings
+description: How Pureframe AI turns video frames into searchable vectors.
+---
+
+Pureframe AI's search signals work differently under the hood: visual and scene search use vector embeddings, while transcript search uses full-text search. Understanding the difference explains why combined queries work the way they do.
+
+## Visual embeddings
+
+Every extracted frame is encoded by **SigLIP** (`google/siglip-so400m-patch14-384`), producing a 1152-dimensional vector that captures the frame's visual content. These vectors are stored in a vector database, each tagged with `org_id`, `video_id`, and `timestamp` for isolation and retrieval.
+
+When you submit a text or image search query, Pureframe AI encodes it with the same model and finds the nearest frame vectors — this is what makes queries like `"whiteboard with a diagram"` or a reference image work without exact keyword matching.
+
+## Scene label classification
+
+Scene segments (Pro/Enterprise plans) use the same encoder in a different mode — zero-shot classification against a fixed label set, run once per detected shot rather than per frame. See [Processing Lifecycle](/video-processing/processing-lifecycle) for where this fits in the pipeline.
+
+## Transcript matching (not embeddings)
+
+Spoken audio is transcribed by **Whisper (medium)** into timestamped speech segments, stored in Postgres. Transcript search does **not** use vector embeddings — it uses Postgres full-text search (`websearch_to_tsquery`), a lexical match against the transcribed words.
+
+This matters practically: transcript search rewards queries that share actual words with what was said (`"pricing objection"` matches a segment containing those words), while visual search rewards conceptual/visual similarity even with no shared vocabulary at all.
+
+## Why combined search works
+
+Because these are fundamentally different techniques, they catch different things:
+
+- Visual embeddings find moments by **what's shown** — no dependence on anyone talking
+- Full-text transcript search finds moments by **what's said** — precise on wording, even if the visual content is static
+
+When multiple modes are active (the default), Pureframe AI runs each search in parallel and merges the ranked results with Reciprocal Rank Fusion (k=60), so a segment can surface because it matches visually, because of what was said, or both. See [Combined Queries](/search/combined-queries).
+
+## Model versions
+
+Each video's `model_version` field records which embedding model indexed it. When Pureframe AI ships a new visual encoder, existing videos can be re-embedded from frame data already stored, without re-running Whisper transcription, since transcription and visual embedding are independent stages.

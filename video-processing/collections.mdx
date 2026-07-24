@@ -1,0 +1,79 @@
+---
+title: Collections
+description: Organize videos into named groups and scope searches to a specific library.
+---
+
+Collections are named groups of videos. Every video belongs to exactly one collection. When you search, you can scope the query to a single collection — which is faster and more precise than searching your entire library.
+
+## Creating a collection
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/collections \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Product demos" }'
+```
+
+```json
+{
+  "data": {
+    "id": "col_abc123",
+    "name": "Product demos",
+    "video_count": 0,
+    "created_at": "2025-01-01T12:00:00Z"
+  }
+}
+```
+
+Collection names must be unique within your account.
+
+## Uploading a video to a collection
+
+Pass `collection_id` in the upload form. A collection must exist before you can upload to it — see [Upload Videos](/video-processing/upload-videos).
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/upload \
+  -H "Authorization: Bearer pf_..." \
+  -F "collection_id=col_abc123" \
+  -F "file=@demo.mp4"
+```
+
+## Listing all collections
+
+```bash
+curl https://api.pureframe.ai/v1/collections \
+  -H "Authorization: Bearer pf_..."
+```
+
+## Renaming a collection
+
+```bash
+curl -X PATCH https://api.pureframe.ai/v1/collections/col_abc123 \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Sales demos" }'
+```
+
+## Deleting a collection
+
+<Warning>
+  Deleting a collection permanently removes all videos in it and their indexed data. This cannot be undone.
+</Warning>
+
+```bash
+curl -X DELETE https://api.pureframe.ai/v1/collections/col_abc123 \
+  -H "Authorization: Bearer pf_..."
+```
+
+Returns `204 No Content` on success.
+
+## Collection object
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `id` | string | Unique collection ID |
+| `name` | string | Display name — unique per account |
+| `video_count` | integer | Number of videos in this collection |
+| `total_duration_secs` | number | Total video duration across all videos. Present only on single-collection GET |
+| `storage_bytes` | integer | Total storage used by this collection. Present only on single-collection GET |
+| `created_at` | string | ISO 8601 creation timestamp |

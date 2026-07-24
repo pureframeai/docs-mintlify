@@ -1,137 +1,74 @@
 ---
-title: "PureFrame REST API Reference Overview"
-sidebarTitle: "Overview"
-description: "Complete reference for the PureFrame REST API. Base URL, authentication, request/response format, pagination, and error codes."
+title: Overview
+description: The Pureframe AI REST API — base URL, authentication, and response format.
 ---
 
-The PureFrame REST API gives you programmatic access to video ingestion, semantic search, collection management, and webhook notifications. Every feature available in the PureFrame dashboard is also available through this API, making it straightforward to integrate video intelligence directly into your applications.
+The Pureframe AI API is a REST API served over HTTPS. All requests and responses use JSON, except file uploads which use `multipart/form-data`.
 
 ## Base URL
 
-All API requests are made to the following base URL. Every endpoint is versioned under `/v1/`.
+```
+https://api.pureframe.ai
+```
 
-```
-https://api.pureframe.ai/v1
-```
+All endpoints are versioned under `/v1`.
 
 ## Authentication
 
-Every request must include your API key as a Bearer token in the `Authorization` header. You can generate and manage API keys from your [PureFrame dashboard](/authentication).
+Pass your API key as a Bearer token in the `Authorization` header:
 
-```http
-Authorization: Bearer pf_your_key
+```
+Authorization: Bearer pf_...
 ```
 
-<Note>
-  Keep your API key secret. Do not expose it in client-side code or public repositories. If a key is compromised, revoke it immediately from your dashboard and issue a new one.
-</Note>
+Get an API key from [platform.pureframe.ai/settings/api-keys](https://platform.pureframe.ai/settings/api-keys). Keys are prefixed with `pf_` and only shown once on creation. Full details in [Authentication](/get-started/authentication).
 
-## Request Format
+## Response envelope
 
-- **JSON endpoints** — Send a `Content-Type: application/json` header and a JSON-encoded body for all non-file endpoints (e.g. creating collections, registering webhooks).
-- **File uploads and search** — Use `multipart/form-data` when uploading video files or submitting image-based search queries.
-
-## Response Envelope
-
-Every response from the PureFrame API is wrapped in a consistent envelope with two top-level keys:
-
-| Key | Description |
-|-----|-------------|
-| `data` | The primary payload — an object or array depending on the endpoint. |
-| `meta` | Request metadata including a unique request ID, server-side processing time, and pagination details. |
+Every successful response wraps its payload in a consistent structure:
 
 ```json
 {
-  "data": { "..." },
+  "data": { ... },
   "meta": {
     "request_id": "req_abc123",
-    "took_ms": 42,
-    "total": null,
-    "page": null,
-    "per_page": null,
-    "facets": null
+    "took_ms": 18,
+    "total": 42,
+    "page": 1,
+    "per_page": 10
   }
 }
 ```
 
-### Meta Fields
+`total`, `page`, and `per_page` are only present on paginated endpoints.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `request_id` | string | Unique identifier for this request. Include this in support requests. |
-| `took_ms` | number | Server-side processing time in milliseconds. |
-| `total` | integer \| null | Total number of items available. Populated on list endpoints. |
-| `page` | integer \| null | Current page number. Populated on list endpoints. |
-| `per_page` | integer \| null | Number of items per page. Populated on list endpoints. |
-| `facets` | object \| null | Aggregated facet counts. Populated on search endpoints. |
+## Error format
 
-## Error Format
-
-When a request fails, PureFrame returns an appropriate HTTP `4xx` or `5xx` status code alongside a JSON body describing what went wrong.
+Errors return a non-2xx HTTP status and a structured body:
 
 ```json
 {
-  "error": {
-    "code": "validation_error",
-    "message": "Request body validation failed.",
-    "detail": [
-      {
-        "field": "name",
-        "issue": "Field is required and cannot be blank."
-      }
-    ]
+  "detail": {
+    "code": "COLLECTION_NOT_FOUND",
+    "message": "Collection not found"
   }
 }
 ```
 
-## HTTP Status Codes
+The `code` field is machine-readable and stable across API versions. See [Errors](/production/errors) for the full list.
 
-| Status | Meaning |
-|--------|---------|
-| `200 OK` | The request succeeded and the response body contains the result. |
-| `201 Created` | A new resource was successfully created. |
-| `202 Accepted` | The request was accepted for asynchronous processing (e.g. video indexing). |
-| `204 No Content` | The request succeeded and there is no response body (e.g. delete operations). |
-| `401 Unauthorized` | The `Authorization` header is missing or the API key is invalid. |
-| `403 Forbidden` | The API key is valid but does not have permission to perform this action. |
-| `404 Not Found` | The requested resource does not exist. |
-| `422 Validation Error` | The request body failed validation. The `detail` array describes each field-level issue. |
-| `429 Too Many Requests` | You have exceeded your rate limit. Check the `Retry-After` header for when to resume. |
+## Rate limits
 
-## Pagination
+Rate limits are per API key. Exceeding a limit returns `429 Too Many Requests`. See [Rate Limits](/production/rate-limits) for the per-endpoint limits.
 
-List endpoints return paginated results. Control pagination with the following query parameters:
+## Versioning
 
-| Parameter | Default | Maximum | Description |
-|-----------|---------|---------|-------------|
-| `page` | `1` | — | The page number to retrieve. |
-| `per_page` | `20` | `100` | Number of items to return per page. |
+The current API version is `v1`. Breaking changes will be announced before deployment and released under a new version prefix.
 
-Pagination details are reflected in the `meta` object of every list response (`total`, `page`, `per_page`).
+## Endpoints
 
-```http
-GET /v1/collections?page=2&per_page=50
-```
+Every endpoint below is generated directly from the live OpenAPI spec, grouped by resource.
 
-## API Versioning
-
-All endpoints are prefixed with `/v1/`. When breaking changes are introduced, a new version prefix will be released and the previous version will continue to work during a documented deprecation window.
-
----
-
-## Quick Links
-
-<CardGroup cols={2}>
-  <Card title="List Collections" icon="layer-group" href="/api-reference/collections/list">
-    Retrieve all collections for your account.
-  </Card>
-  <Card title="Upload a Video" icon="cloud-arrow-up" href="/api-reference/videos/upload">
-    Ingest a video file and trigger indexing.
-  </Card>
-  <Card title="Search Videos" icon="magnifying-glass" href="/api-reference/search/search">
-    Run a semantic search query against your indexed videos.
-  </Card>
-  <Card title="Create a Webhook" icon="webhook" href="/api-reference/webhooks/create">
-    Register a webhook endpoint for async event notifications.
-  </Card>
-</CardGroup>
+<Note>
+  The **API Keys** group is the exception — those endpoints require a web session with admin role, not an API key, and exist to power the dashboard's key management UI. They're listed here for completeness, not as an integration path. Always create, list, and revoke keys from [Settings → API Keys](https://platform.pureframe.ai/settings/api-keys) — see [API Keys](/get-started/api-keys) for why.
+</Note>

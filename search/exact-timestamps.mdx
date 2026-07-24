@@ -1,0 +1,26 @@
+---
+title: Exact Timestamps
+description: What timestamp_start and timestamp_end actually represent, and their real precision.
+---
+
+Every segment carries `timestamp_start` and `timestamp_end` in seconds, marking where in the source video that match occurs. Precision depends on which signal produced the segment.
+
+## Frame and scene segments
+
+Frames are extracted at fixed intervals (every 5 seconds) — a `frame` match's timestamps are anchored to that grid, not to the exact sub-second moment something appeared. `scene` segments are bounded by detected shot boundaries, which can be tighter than 5 seconds if the video cuts quickly, but aren't frame-perfect either.
+
+In practice: treat a `frame` or `scene` timestamp as "within a few seconds of this point," not a frame-accurate cue. If your use case needs sub-second seeking, seek slightly before `timestamp_start` in your player rather than exactly to it.
+
+## Transcript segments
+
+`transcript` timestamps come from Whisper's speech segmentation, which is generally tighter — segment boundaries follow natural pauses in speech rather than a fixed grid. This makes transcript matches more reliable for "jump to exactly where this was said" than visual matches are for "jump to exactly where this appeared."
+
+## Using timestamps to seek video
+
+`video_url` is a presigned URL to the full video file, not a pre-clipped segment — append a fragment or use your player's API to seek to `timestamp_start`:
+
+```html
+<video src="{video_url}#t={timestamp_start}"></video>
+```
+
+Most browsers respect the `#t=` media fragment for MP4. If you need a pre-trimmed clip rather than a seek point, you'll need to trim it client-side or in your own pipeline — Pureframe AI doesn't generate clip files.
