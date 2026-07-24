@@ -1,0 +1,34 @@
+---
+title: Security
+description: What Pureframe AI guarantees today, and what it doesn't yet.
+---
+
+## What's in place today
+
+**Encryption in transit** — all traffic between clients and the API uses HTTPS (TLS 1.2+). Connections from the API to every subprocessor (database, vector store, object storage, GPU pipeline) are also TLS.
+
+**Encryption at rest** — video files, frames, database records, and vectors are encrypted at rest by the underlying storage providers (Cloudflare R2, Supabase Postgres, Qdrant Cloud).
+
+**Account isolation** — every database query, vector search, and storage path is filtered by your account ID. One customer cannot read another's videos, transcripts, or search results through the API.
+
+**API key handling** — keys are stored as a SHA-256 hash; the plain secret is shown once at creation and never again, even to Pureframe AI. Key creation and revocation require a web session, not another API key, so a leaked API key alone can't be used to mint or revoke keys.
+
+**Rate limiting** — every endpoint is rate-limited per key to contain abuse; see [Rate Limits](/production/rate-limits).
+
+## What Pureframe AI does not yet guarantee
+
+Being upfront about this matters more than sounding reassuring. As of today, Pureframe AI does not have:
+
+| Gap | Status |
+|-----|--------|
+| SOC 2 Type II certification | Not yet started |
+| Independent penetration test | Not yet performed |
+| Formal uptime SLA | No contractual commitment |
+| Documented incident response SLA | Informal process only |
+| EU or regional data residency | US-only infrastructure |
+
+If any of these are a hard requirement for your organization, [contact us](mailto:hello@pureframe.ai) before sending production or sensitive content — enterprise agreements can address specific requirements on a case-by-case basis, but they aren't standing guarantees of the public API today.
+
+## Reporting a vulnerability
+
+If you find a security issue, email **security@pureframe.ai**. Include enough detail to reproduce it. Give Pureframe AI a reasonable window to fix the issue before any public disclosure.

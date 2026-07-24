@@ -1,0 +1,43 @@
+---
+title: Data Handling
+description: What Pureframe AI stores, for how long, and what happens when you delete something.
+---
+
+## Ownership
+
+You own everything you upload. Pureframe AI processes it to provide the service — indexing, search, storage — and for no other purpose. Your video content is never used to train models.
+
+## What's stored, and where
+
+| Data | Where | Kept until |
+|------|-------|------------|
+| Original video file | Cloudflare R2 | You delete the video |
+| Extracted frames | Cloudflare R2 | You delete the video |
+| Frame and scene embeddings | Qdrant | You delete the video |
+| Transcript segments | Postgres | You delete the video |
+| Video and collection metadata | Postgres | You delete the video or collection |
+| Credit transaction history | Postgres | 7 years (financial record requirement) |
+| Search logs | Postgres | Purged after 12 months |
+
+Presigned URLs (`video_url`, `thumbnail_url`, `playback_url`) aren't stored at all — they're generated on demand and expire after about an hour.
+
+## Deleting a video or collection
+
+`DELETE /v1/videos/{video_id}` and `DELETE /v1/collections/{collection_id}` are immediate and permanent — the video file, extracted frames, vectors, and transcript segments are all removed. There's no soft-delete or recovery window at the video/collection level.
+
+## Deleting your account
+
+Account deletion has a 30-day grace period, initiated from Settings → Account → Danger Zone in the web app (not available via API key — this requires a web session, since it's irreversible). During the grace period you can cancel. After it elapses:
+
+- All videos, collections, vectors, and transcripts are permanently deleted
+- Your user profile is removed
+- Credit transaction history is retained but anonymized (required for financial recordkeeping)
+- An anonymized record (plan, spend, tenure — no identifying content) is kept for aggregate business metrics
+
+## Cross-border data transfer
+
+All infrastructure — object storage, vector database, and the processing pipeline — is hosted in the US. Pureframe AI does not currently offer EU data residency. If your organization requires in-region storage for compliance reasons, [contact us](mailto:hello@pureframe.ai) before onboarding sensitive content.
+
+## Isolation
+
+Every query — database, vector search, and object storage path — is filtered by your account ID. There's no cross-account visibility into another customer's videos, transcripts, or search results. See [Security](/production/security) for how this is enforced.

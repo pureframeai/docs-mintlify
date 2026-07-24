@@ -1,0 +1,78 @@
+---
+title: Overview
+description: Video intelligence API — find any moment in your footage with text or an image.
+---
+
+Pureframe AI is a video intelligence API. Upload your footage and Pureframe AI indexes every frame and every spoken word — then you can find any moment with a natural language query, a reference image, or both.
+
+## How it works
+
+<Steps>
+  <Step title="Upload">
+    Send a video file to `POST /v1/upload` with a `collection_id`. Pureframe AI returns a `job_id` immediately — processing runs in the background.
+  </Step>
+  <Step title="Index">
+    Pureframe AI extracts frames, generates visual embeddings, and transcribes speech. The job moves through `queued → processing → done`. Poll `GET /v1/jobs/{job_id}` for live progress.
+  </Step>
+  <Step title="Search">
+    Send a text query, an image file, or an image URL to `POST /v1/search`. Results are ranked, timestamped segments with presigned video URLs, frame thumbnails, and transcribed speech.
+  </Step>
+  <Step title="Use the clips">
+    Each result includes `thumbnail_base64` — a base64-encoded JPEG that vision-capable models can consume directly, without fetching a URL.
+  </Step>
+</Steps>
+
+## Base URL
+
+```
+https://api.pureframe.ai
+```
+
+All endpoints are versioned under `/v1`.
+
+## Response envelope
+
+Every API response shares the same wrapper:
+
+```json
+{
+  "data": { ... },
+  "meta": {
+    "request_id": "req_abc123",
+    "took_ms": 42,
+    "total": 10,
+    "page": 1,
+    "per_page": 10
+  }
+}
+```
+
+Errors return a non-2xx status with a machine-readable code:
+
+```json
+{
+  "detail": {
+    "code": "COLLECTION_NOT_FOUND",
+    "message": "Collection not found"
+  }
+}
+```
+
+See [Errors](/production/errors) for the full list.
+
+## Jump in
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="forward-fast" href="/get-started/quickstart">
+    Upload a video and run your first search in under 5 minutes.
+  </Card>
+  <Card title="Key Concepts" icon="lightbulb" href="/get-started/key-concepts">
+    The mental model — collections, jobs, modalities, credits.
+  </Card>
+  <Card title="Search" icon="magnifying-glass" href="/search/overview">
+    Text, image, and transcript search, and how they combine.
+  </Card>
+  <Card title="Agent Vision" icon="robot" href="/agents/agent-vision">
+    Connect Pureframe AI to any AI agent via MCP or function calling.
+  </Card>
+</CardGroup>

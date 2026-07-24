@@ -1,0 +1,41 @@
+---
+title: Search a Video
+description: Working with one specific video once you've found it.
+---
+
+There's no endpoint that scopes a search query to a single `video_id` — search always runs against a collection or your whole library, described in [Search a Collection](/search/search-a-collection). Once you have a `video_id`, either from a search result or from listing a collection, use it to fetch that video directly:
+
+```bash
+curl https://api.pureframe.ai/v1/videos/vid_def456 \
+  -H "Authorization: Bearer pf_..."
+```
+
+```json
+{
+  "data": {
+    "id": "vid_def456",
+    "filename": "footage.mp4",
+    "collection_id": "col_abc123",
+    "status": "done",
+    "duration_secs": 612.4,
+    "playback_url": "https://...",
+    "thumbnail_url": "https://...",
+    "segments_count": 34
+  }
+}
+```
+
+`playback_url` is a presigned URL valid for about an hour — fetch a fresh one each time you need to play the video rather than caching it. See [Metadata](/video-processing/metadata) for every field on the video object.
+
+## If you want "more like this, in this video"
+
+If a search already returned segments from the video you care about, you have the `video_id` for each — filter the response client-side rather than making a second request. For finding visually similar moments across the same library (not scoped to one video), see [Image Search](/search/image): submit one of the video's own frame thumbnails as a reference image.
+
+## Deleting a video
+
+```bash
+curl -X DELETE https://api.pureframe.ai/v1/videos/vid_def456 \
+  -H "Authorization: Bearer pf_..."
+```
+
+Permanently removes the video file, all frame data, and indexed segments. Returns `204 No Content`. This cannot be undone.

@@ -1,0 +1,104 @@
+---
+title: Errors
+description: Machine-readable error codes returned by the Pureframe AI API.
+---
+
+All errors return a non-2xx HTTP status and a JSON body:
+
+```json
+{
+  "detail": {
+    "code": "COLLECTION_NOT_FOUND",
+    "message": "Collection not found"
+  }
+}
+```
+
+The `code` field is stable and machine-readable. The `message` field is human-readable and may change.
+
+## HTTP status codes
+
+| Status | Meaning |
+|--------|---------|
+| `400` | Bad request |
+| `401` | Missing or invalid API key |
+| `402` | Payment required |
+| `403` | Forbidden |
+| `404` | Resource not found |
+| `413` | File too large |
+| `415` | Unsupported media type |
+| `422` | Validation error |
+| `429` | Rate limit exceeded |
+| `503` | Service unavailable |
+
+## Error code reference
+
+### Authentication
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `UNAUTHORIZED` | 401 | API key missing or invalid |
+| `INVALID_API_KEY` | 401 | The provided API key does not exist or has been revoked |
+| `SESSION_EXPIRED` | 401 | Session token has expired |
+| `FORBIDDEN` | 403 | The key exists but doesn't have permission for this action |
+
+### Collections
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `COLLECTION_NOT_FOUND` | 404 | Collection ID not found, or not owned by this account |
+| `COLLECTION_NAME_TAKEN` | 409 | A collection with this name already exists in your account |
+
+### Videos
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VIDEO_NOT_FOUND` | 404 | Video ID not found, or not owned by this account |
+
+### Upload
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `UPLOAD_TOO_LARGE` | 413 | File exceeds the 5 GB maximum |
+| `UNSUPPORTED_FORMAT` | 415 | File type is not supported. Accepted: MP4, MOV, AVI, WebM, MPEG, MKV |
+| `PLAN_LIMIT_EXCEEDED` | 402 | Upload would exceed your plan's storage limit |
+
+### Search
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `SEARCH_LIMIT_EXCEEDED` | 402 | Daily search quota exhausted (Free plan) |
+| `SEARCH_UNAVAILABLE` | 503 | Search service temporarily unavailable — retry shortly |
+| `VALIDATION_ERROR` | 422 | A query was rejected as out of scope (e.g. asking Pureframe AI to count or summarize rather than find a moment) |
+
+### Billing and credits
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `INSUFFICIENT_CREDITS` | 402 | Account has no remaining credits |
+| `PAYMENT_METHOD_REQUIRED` | 402 | Action requires a saved payment method |
+| `PAYMENT_FAILED` | 402 | Stripe payment attempt failed |
+| `BILLING_NOT_CONFIGURED` | 402 | No billing account associated with this user |
+
+### Jobs
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `JOB_NOT_FOUND` | 404 | Job ID not found or not owned by this account |
+
+### API keys
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `API_KEY_NOT_FOUND` | 404 | API key ID not found |
+| `API_KEY_ALREADY_REVOKED` | 409 | Key has already been revoked |
+| `API_KEY_LIMIT_REACHED` | 402 | Account has reached the maximum number of API keys for this plan |
+
+### General
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VALIDATION_ERROR` | 422 | Request parameter failed validation — check the `message` field |
+| `NOT_FOUND` | 404 | Generic not found |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests — retry with exponential backoff |

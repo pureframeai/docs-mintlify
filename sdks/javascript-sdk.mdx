@@ -1,0 +1,69 @@
+---
+title: JavaScript SDK
+description: Official TypeScript/Node.js client, generated from the OpenAPI spec.
+---
+
+The npm package is `@pureframeai/sdk`. It's generated directly from the API spec and ships full TypeScript types for every request and response. Requires Node.js 18+.
+
+```bash
+npm install @pureframeai/sdk
+```
+
+## Usage
+
+```typescript
+import { PureframeClient } from "@pureframeai/sdk"
+import * as fs from "fs"
+
+const client = new PureframeClient({ token: "pf_..." })
+
+// Create a collection
+const collection = await client.collections.createCollection({ name: "Product demos" })
+const collectionId = collection.data.id
+
+// Upload a video
+const job = await client.upload.uploadVideo({
+  collection_id: collectionId,
+  file: fs.createReadStream("demo.mp4"),
+})
+const jobId = job.data.job_id
+
+// Poll until done
+let done = false
+while (!done) {
+  const status = await client.jobs.getJob({ job_id: jobId })
+  if (status.data.status === "done") done = true
+  else await new Promise(r => setTimeout(r, 5000))
+}
+
+// Search
+const results = await client.search.search({
+  query: "pricing objection",
+  collection_id: collectionId,
+})
+for (const video of results.data) {
+  for (const seg of video.segments) {
+    console.log(`${video.filename} @ ${seg.timestamp_start}s — score: ${seg.score}`)
+  }
+}
+```
+
+The client's exported class is `PureframeClient` — note the lowercase "f", which matches the npm package name (`@pureframeai/sdk`), not the product's display capitalization.
+
+We recommend reading your API key from an environment variable:
+
+```typescript
+import { PureframeClient } from "@pureframeai/sdk"
+
+const client = new PureframeClient({
+  token: process.env["PUREFRAME_API_KEY"],
+})
+```
+
+## Resources on the client
+
+The client is organized into resources matching the REST API: `client.collections`, `client.upload`, `client.search`, `client.videos`, `client.jobs`, `client.webhooks`, `client.apiKeys`, `client.agent`, `client.frameMap`.
+
+## Full reference
+
+Every method, parameter, and response type is documented in the [API Reference](/api-reference/overview) — the SDK is a thin, typed wrapper over the same REST endpoints.

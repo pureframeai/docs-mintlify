@@ -1,0 +1,63 @@
+---
+title: Processing Status
+description: Poll a job's status while a video is being indexed.
+---
+
+Poll `GET /v1/jobs/{job_id}` until status is `done` or `failed`.
+
+```bash
+curl https://api.pureframe.ai/v1/jobs/job_xyz789 \
+  -H "Authorization: Bearer pf_..."
+```
+
+```json
+{
+  "data": {
+    "job_id": "job_xyz789",
+    "status": "processing",
+    "progress_pct": 64
+  }
+}
+```
+
+## Status values
+
+| Status | Meaning |
+|--------|---------|
+| `queued` | Waiting for a processing worker |
+| `pending` | Worker assigned, about to start |
+| `processing` | Actively being indexed — `progress_pct` updates live |
+| `done` | Fully indexed and searchable |
+| `failed` | Processing failed — retry the upload |
+
+A video is only searchable once its job reaches `done`. Searching before that returns no results for that video.
+
+## Polling recommendation
+
+Use exponential backoff. For most videos, check at 5s, 10s, 20s intervals:
+
+```python
+import time, httpx
+
+def wait_for_job(job_id: str, api_key: str) -> dict:
+    headers = {"Authorization": f"Bearer {api_key}"}
+    delay = 5
+    while True:
+        resp = httpx.get(
+            f"https://api.pureframe.ai/v1/jobs/{job_id}",
+            headers=headers
+        ).json()
+        status = resp["data"]["status"]
+        if status in ("done", "failed"):
+            return resp["data"]
+        time.sleep(delay)
+        delay = min(delay * 2, 60)
+```
+
+## Getting notified instead of polling
+
+If you don't want to poll at all, subscribe to `job.completed` and `job.failed` webhook events instead — see [Webhooks](/production/webhooks).
+
+## If a job fails
+
+The job status becomes `failed` and the video's own status mirrors it. There's no automatic retry — re-upload the video to create a new job. If failures persist across multiple uploads of the same file, the file itself is likely the problem (corrupt container, unsupported codec inside an otherwise-accepted format).

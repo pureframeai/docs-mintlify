@@ -1,0 +1,60 @@
+---
+title: Overview
+description: Find any moment in your video library using text, an image, or both.
+---
+
+`POST /v1/search` finds timestamped moments in your video library. Send a text description, a reference image, or a public image URL — results are ranked by relevance and grouped by video.
+
+## Input types
+
+| Input | How to send | Example |
+|-------|-------------|---------|
+| Text query | `query` form field | `"person waving at the camera"` |
+| Image file | `image` file upload | Upload a JPEG or PNG |
+| Image URL | `image_url` form field | `"https://example.com/ref.jpg"` |
+
+At least one input is required. You cannot send both `image` and `image_url` in the same request. A text-only query also requires `collection_id` — image search can run across your whole library, but text search needs a collection to scope against.
+
+## What gets searched
+
+Every video is indexed across up to four signal types, and a query can match any of them:
+
+| Type | What it matches | Search page |
+|------|------------------|-------------|
+| `frame` | Visual content — what's on screen | [Image search](/search/image), [Combined queries](/search/combined-queries) |
+| `transcript` | Spoken words, transcribed | [Transcript search](/search/transcript) |
+| `scene` | Auto-detected scene labels (e.g. outdoor, whiteboard) at shot boundaries | [Combined queries](/search/combined-queries) |
+| `ocr` | Text visible in frame — signage, slides, captions | [Combined queries](/search/combined-queries) |
+
+Each result segment's `type` field tells you which one matched. See [Search Results](/search/search-results) for the full response shape.
+
+## Scoping and pagination
+
+Pass `collection_id` to limit results to one collection — faster and more precise than searching your whole library. Results are paginated with `page` and `per_page` (max 50).
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=product demo" \
+  -F "collection_id=col_abc123" \
+  -F "per_page=20"
+```
+
+## Credits and limits
+
+Each search request consumes 1 credit on Pro accounts (see [Usage and Billing](/production/usage-and-billing)). Free accounts get a daily quota of 10 searches. Requests are rate-limited to 30/minute per API key — see [Rate Limits](/production/rate-limits).
+
+<CardGroup cols={2}>
+  <Card title="Text Search" icon="font" href="/search/text">
+    Natural language queries against visual and spoken content.
+  </Card>
+  <Card title="Image Search" icon="image" href="/search/image">
+    Find visually similar frames from a reference image.
+  </Card>
+  <Card title="Transcript Search" icon="closed-captioning" href="/search/transcript">
+    Search only what was said, not what's shown.
+  </Card>
+  <Card title="Combined Queries" icon="layer-group" href="/search/combined-queries">
+    How modes merge, and the `modes`/`labels` parameters.
+  </Card>
+</CardGroup>

@@ -1,0 +1,37 @@
+---
+title: Text Search
+description: Find moments using a natural language description.
+---
+
+Send a plain-language description in the `query` field. Pureframe AI searches visual content and speech simultaneously by default — no need to know in advance whether the moment you want is something someone said or something that appeared on screen.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=person waving at the camera" \
+  -F "collection_id=col_abc123"
+```
+
+`collection_id` is required for text-only queries — unlike image search, there's no whole-library text search today.
+
+## How matching works
+
+A text query is embedded with the same visual encoder used to index frames, so it can match `frame` segments by conceptual similarity even when no words overlap with anything spoken. In parallel, the raw query runs against transcript text via full-text search, matching `transcript` segments on shared vocabulary. See [Combined Queries](/search/combined-queries) for how the two are merged.
+
+## Natural language queries
+
+For longer or more conversational queries — `"find the best tracking shots of someone running on a rooftop"` — set `natural_language=true`. An LLM decomposition step parses the query into a structured visual/transcript split before it hits the underlying search, rather than embedding the raw sentence as-is.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "query=find the moment someone mentions the annual contract" \
+  -F "natural_language=true" \
+  -F "collection_id=col_abc123"
+```
+
+This is available on paid plans. The web app and MCP server enable it automatically for queries that look conversational; the flag is opt-in for direct REST and SDK calls.
+
+## No results?
+
+If a query returns nothing, Pureframe AI automatically tries up to two LLM-generated rephrasings of the same query before giving up — this only fires when the literal query found zero matches, so it doesn't add latency to queries that already work.

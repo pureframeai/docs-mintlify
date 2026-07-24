@@ -1,0 +1,168 @@
+---
+title: Webhooks
+description: Get real-time HTTP notifications when events happen in your account.
+---
+
+Webhooks let Pureframe AI notify your server the moment something happens — a video finishes processing, a job fails, your credit balance runs low — instead of you polling for it.
+
+## Verifying webhook requests
+
+Every delivery includes an `X-Pureframe-Signature` header. Verify it against the raw request body before trusting the payload.
+
+**Python (Flask)**
+
+```python
+import hashlib
+import hmac
+from flask import Flask, request, abort
+
+app = Flask(__name__)
+WEBHOOK_SECRET = "whsec_..."  # from the endpoint's creation response
+
+@app.post("/webhooks/pureframe")
+def handle_webhook():
+    body = request.get_data()  # raw bytes — must match exactly what was signed
+    signature = request.headers.get("X-Pureframe-Signature", "")
+    expected = "sha256=" + hmac.new(WEBHOOK_SECRET.encode(), body, hashlib.sha256).hexdigest()
+
+    if not hmac.compare_digest(signature, expected):
+        abort(401)
+
+    event = request.get_json()
+    print(f"Received {event['event']} for {event['data']}")
+    return "", 200
+```
+
+**Node.js (Express)**
+
+```javascript
+const express = require("express");
+const crypto = require("crypto");
+
+const app = express();
+const WEBHOOK_SECRET = "whsec_...";
+
+// Use express.text() (or a raw body parser), not express.json(),
+// so the exact bytes that were signed are available for verification.
+app.post("/webhooks/pureframe", express.text({ type: "*/*" }), (req, res) => {
+  const signature = req.headers["x-pureframe-signature"] || "";
+  const expected = "sha256=" + crypto
+    .createHmac("sha256", WEBHOOK_SECRET)
+    .update(req.body)
+    .digest("hex");
+
+  if (signature !== expected) {
+    return res.status(401).send();
+  }
+
+  const event = JSON.parse(req.body);
+  console.log(`Received ${event.event} for`, event.data);
+  res.status(200).send();
+});
+```
+
+## Creating a webhook endpoint
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/webhooks \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "url": "https://yourapp.com/webhooks/pureframe", "events": ["job.completed", "job.failed"] }'
+```
+
+```json
+{
+  "data": {
+    "id": "wh_abc123",
+    "user_id": "usr_...",
+    "url": "https://yourapp.com/webhooks/pureframe",
+    "events": ["job.completed", "job.failed"],
+    "is_active": true,
+    "created_at": "2026-07-01T12:00:00Z",
+    "secret": "whsec_9f8e7d6c5b4a..."
+  }
+}
+```
+
+<Warning>
+  The `secret` field is only returned once, at creation. Store it — you'll need it to verify incoming deliveries. There is no way to retrieve it again; delete the endpoint and create a new one if you lose it.
+</Warning>
+
+The target URL must be publicly reachable — Pureframe AI rejects URLs pointing at private, loopback, or link-local addresses (e.g. `10.0.0.0/8`, `127.0.0.1`, `169.254.169.254`) both when you register the endpoint and again at delivery time.
+
+**Other endpoint operations:**
+
+```bash
+# List your endpoints
+curl https://api.pureframe.ai/v1/webhooks -H "Authorization: Bearer pf_..."
+
+# Update an endpoint's URL, events, or active state
+curl -X PATCH https://api.pureframe.ai/v1/webhooks/wh_abc123 \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "is_active": false }'
+
+# Delete an endpoint
+curl -X DELETE https://api.pureframe.ai/v1/webhooks/wh_abc123 -H "Authorization: Bearer pf_..."
+```
+
+## Event types
+
+| Event | Fires when |
+|-------|-----------|
+| `job.completed` | A video finishes processing and becomes searchable |
+| `job.failed` | A video processing job fails |
+| `video.created` | A new video is uploaded and a job is queued |
+| `video.deleted` | A video is deleted |
+| `credits.low` | Account credit balance drops below the low-balance threshold |
+| `credits.exhausted` | Account credit balance reaches zero |
+| `account.deleted` | A user's account is permanently deleted |
+
+Subscribe to only the events you need — deliveries for unsubscribed events are never sent to that endpoint.
+
+## Handling requests and retry logic
+
+Every delivery is a `POST` with this envelope:
+
+```json
+{
+  "id": "evt_1a2b3c4d5e6f",
+  "event": "job.completed",
+  "created_at": "2026-07-01T12:03:45Z",
+  "data": { "job_id": "job_xyz789", "video_id": "vid_def456" }
+}
+```
+
+Return any `2xx` status to acknowledge receipt. If your endpoint doesn't respond successfully, Pureframe AI retries up to **2 more times** — once after 30 seconds, once after 60 seconds — then stops and marks the delivery `failed`. There's no long-tail retry window; if your endpoint might be unavailable for longer than that, use the manual redelivery endpoint below to recover missed events.
+
+## Testing and signature verification
+
+Fire a synthetic test event at any endpoint without waiting for a real one:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/webhooks/wh_abc123/test \
+  -H "Authorization: Bearer pf_..."
+```
+
+This delivers a `webhook.ping` event through the same signing and delivery path as real events, so it's a reliable way to confirm your signature verification code works end to end.
+
+Inspect delivery history for an endpoint:
+
+```bash
+curl https://api.pureframe.ai/v1/webhooks/wh_abc123/deliveries \
+  -H "Authorization: Bearer pf_..."
+```
+
+Manually redeliver a specific failed delivery instead of waiting for the automatic retry window:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/webhooks/wh_abc123/deliveries/del_xyz789/retry \
+  -H "Authorization: Bearer pf_..."
+```
+
+## Plan limits
+
+| Plan | Max active endpoints |
+|------|-----------------------|
+| Free | 3 |
+| Pro | 20 |

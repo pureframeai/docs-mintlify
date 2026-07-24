@@ -1,0 +1,33 @@
+---
+title: Authentication
+description: Authenticate API requests with a Bearer token.
+---
+
+All API requests require a Bearer token in the `Authorization` header.
+
+```
+Authorization: Bearer pf_...
+```
+
+## Creating an API key
+
+1. Go to [Settings → API Keys](https://platform.pureframe.ai/settings/api-keys)
+2. Click **New Key**, give it a name, and choose a permission level
+3. Copy the key — it's only shown once
+
+<Warning>
+  Store your API key in an environment variable or secrets manager — never commit it to source control. Keys are prefixed with `pf_` so they're easy to detect in accidental leaks.
+</Warning>
+
+## Permission levels
+
+| Level | Access |
+|-------|--------|
+| `all` | Full read and write — upload, search, manage collections and webhooks |
+| `read_only` | Search and read only — no uploads, deletes, or webhook management |
+
+Use `read_only` keys for client-side or agent integrations where you don't need to upload. See [API Keys](/get-started/api-keys) for the full object reference and plan limits.
+
+## Revoking a key
+
+Revoke a key immediately from the [API Keys dashboard](https://platform.pureframe.ai/settings/api-keys) if it's compromised — requests using it will be rejected within seconds.

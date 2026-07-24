@@ -1,0 +1,39 @@
+---
+title: MCP Overview
+description: Connect Pureframe AI to any AI agent via the Model Context Protocol.
+---
+
+Pureframe AI exposes your video library as an MCP server. Once connected, any MCP-compatible AI client can search footage, list collections, retrieve video details, and index new footage — all through natural language. Try asking your agent: *"Find the moment our CEO mentions pricing."*
+
+## What is MCP?
+
+The Model Context Protocol (MCP) is an open standard for connecting AI clients to external tools and data sources. Instead of writing custom integration code for each AI product, you configure one MCP server and every MCP-compatible client — Claude, Cursor, VS Code, Codex, OpenCode, and others — can call it the same way.
+
+## How it works
+
+1. Your AI client sends a natural-language request to the model (e.g. "find the moment someone mentions churn")
+2. The model decides to call the `search_videos` tool and generates its input
+3. The MCP server forwards the call to Pureframe AI's API and returns matching clips, including `thumbnail_base64`
+4. The model reads the frame directly, in the same turn, without fetching a URL, and can answer follow-up questions about what's visible
+
+## Available tools
+
+| Tool | Description |
+|------|-------------|
+| `search_videos` | Find moments matching a text query. Returns clips with timestamps, presigned URLs, and base64-encoded frame images |
+| `list_collections` | List all collections in the library |
+| `get_collection` | Get details about a specific collection: video count, total duration, storage used |
+| `get_video` | Get metadata and a presigned playback URL for a specific video |
+| `upload_video` | Upload a video file from the local filesystem into a collection for indexing. Returns a `job_id`. Local server only — not available on the remote MCP endpoint, which can't read your files. Requires a key with write permission |
+| `get_job_status` | Check an indexing job's status and progress. Poll after `upload_video` until `done`, then the video is searchable |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Connect an Agent" icon="plug" href="/agents/connect-an-agent">
+    Per-client setup, config files, and troubleshooting.
+  </Card>
+  <Card title="Agent Security" icon="shield-halved" href="/agents/agent-security">
+    Scoping what an agent can do with your library.
+  </Card>
+</CardGroup>

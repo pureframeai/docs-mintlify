@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "Pureframe AI API Documetation",
+  "name": "Pureframe AI API Documentation",
   "theme": "mint",
   "colors": {
     "primary": "#DA5400",
@@ -32,26 +32,69 @@
           {
             "group": "Get Started",
             "pages": [
-              "overview",
-              "quickstart",
-              "authentication"
+              "get-started/overview",
+              "get-started/quickstart",
+              "get-started/authentication",
+              "get-started/api-keys",
+              "get-started/key-concepts"
             ]
           },
           {
-            "group": "Core Concepts",
+            "group": "Search",
             "pages": [
-              "concepts/collections",
-              "concepts/videos-and-indexing",
-              "concepts/search"
+              "search/overview",
+              "search/text",
+              "search/image",
+              "search/transcript",
+              "search/combined-queries",
+              "search/search-a-video",
+              "search/search-a-collection",
+              "search/search-results",
+              "search/exact-timestamps",
+              "search/frame-map"
             ]
           },
           {
-            "group": "Guides",
+            "group": "Video Processing",
             "pages": [
-              "guides/upload-and-index",
-              "guides/searching-videos",
-              "guides/ai-agent-integration",
-              "guides/webhooks"
+              "video-processing/upload-videos",
+              "video-processing/processing-lifecycle",
+              "video-processing/collections",
+              "video-processing/transcripts",
+              "video-processing/embeddings",
+              "video-processing/metadata",
+              "video-processing/processing-status"
+            ]
+          },
+          {
+            "group": "Agents",
+            "pages": [
+              "agents/agent-vision",
+              "agents/mcp-overview",
+              "agents/connect-an-agent",
+              "agents/source-backed-results",
+              "agents/agent-security"
+            ]
+          },
+          {
+            "group": "Production",
+            "pages": [
+              "production/webhooks",
+              "production/rate-limits",
+              "production/errors",
+              "production/performance",
+              "production/usage-and-billing",
+              "production/data-handling",
+              "production/security"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/examples",
+              "resources/use-cases",
+              "resources/changelog",
+              "resources/faq"
             ]
           }
         ]
@@ -60,74 +103,26 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "Overview",
+            "group": "API Reference",
+            "openapi": "openapi.json",
             "pages": [
               "api-reference/overview"
-            ]
-          },
-          {
-            "group": "Collections",
-            "pages": [
-              "api-reference/collections/list",
-              "api-reference/collections/create",
-              "api-reference/collections/get",
-              "api-reference/collections/update",
-              "api-reference/collections/delete"
-            ]
-          },
-          {
-            "group": "Videos",
-            "pages": [
-              "api-reference/videos/upload",
-              "api-reference/videos/list",
-              "api-reference/videos/get",
-              "api-reference/videos/delete",
-              "api-reference/videos/get-job"
-            ]
-          },
-          {
-            "group": "Search",
-            "pages": [
-              "api-reference/search/search",
-              "api-reference/search/feedback"
-            ]
-          },
-          {
-            "group": "Webhooks",
-            "pages": [
-              "api-reference/webhooks/list",
-              "api-reference/webhooks/create",
-              "api-reference/webhooks/update",
-              "api-reference/webhooks/delete",
-              "api-reference/webhooks/test",
-              "api-reference/webhooks/deliveries"
-            ]
-          },
-          {
-            "group": "Agent",
-            "pages": [
-              "api-reference/agent/schema",
-              "api-reference/agent/call"
-            ]
-          },
-          {
-            "group": "FrameMap",
-            "pages": [
-              "api-reference/framemap"
-            ]
-          },
-          {
-            "group": "API Keys",
-            "pages": [
-              "api-reference/api-keys/list",
-              "api-reference/api-keys/create",
-              "api-reference/api-keys/revoke"
             ]
           }
         ]
       },
       {
-        "tab": "SDK Reference"
+        "tab": "SDK Reference",
+        "groups": [
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/python-sdk",
+              "sdks/javascript-sdk",
+              "sdks/mcp-server"
+            ]
+          }
+        ]
       }
     ]
   },
@@ -147,9 +142,6 @@
   },
   "markdown": {
     "schema": true
-  },
-  "api": {
-    "openapi": "openapi.json"
   },
   "seo": {
     "metatags": {

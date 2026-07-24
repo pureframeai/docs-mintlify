@@ -1,0 +1,101 @@
+---
+title: Search Results
+description: The shape of a search response — video groups, segments, and every field on them.
+---
+
+Results are grouped by video. Each video in `data` carries a list of matching segments:
+
+```json
+{
+  "video_id": "vid_abc123",
+  "filename": "footage.mp4",
+  "collection_id": "col_xyz",
+  "status": "done",
+  "segments": [
+    {
+      "timestamp_start": 42.5,
+      "timestamp_end": 47.0,
+      "score": 0.91,
+      "type": "frame",
+      "text_content": "Hey everyone, welcome back!",
+      "bbox": null,
+      "video_url": "https://...",
+      "thumbnail_url": "https://...",
+      "hidden": false,
+      "rank": 0
+    }
+  ]
+}
+```
+
+## Segment fields
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `timestamp_start` / `timestamp_end` | number | Segment boundaries in seconds |
+| `score` | number | Relevance from 0 to 1 |
+| `type` | string | Which signal matched — `frame`, `transcript`, `scene`, or `ocr`. See [Combined Queries](/search/combined-queries) |
+| `text_content` | string \| null | Transcribed speech or caption text, if this segment has any |
+| `bbox` | object \| null | Bounding box within the frame, present on some `ocr` matches |
+| `video_url` | string \| null | Presigned URL to stream the full video (valid ~1 hour) |
+| `thumbnail_url` | string \| null | Presigned URL to the matched frame image (valid ~1 hour) |
+| `hidden` | boolean | Whether you've marked this segment hidden via [search feedback](/search/search-results#feedback) |
+| `rank` | integer | Position in this page of results — use it when logging a click, see below |
+
+## Video group fields
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `video_id` | string | ID of the matched video |
+| `filename` | string \| null | Original uploaded filename |
+| `collection_id` | string \| null | Collection this video belongs to |
+| `status` | string \| null | Processing status of the video |
+| `segments` | array | Matching segments, see above |
+
+## Response meta
+
+```json
+{
+  "meta": {
+    "total": 12,
+    "page": 1,
+    "per_page": 10,
+    "search_id": "a1b2c3d4-...",
+    "facets": { "scene_labels": { "whiteboard": 4, "outdoor": 2 } }
+  }
+}
+```
+
+`search_id` identifies this specific search — pass it back when logging a click (below) so click-through can be attributed to the query that produced it. `facets` is only present when `scene` labels were found in the results, and gives you counts to build filter UI without a second request.
+
+## Logging a click
+
+Tell Pureframe AI which result a user actually opened — this is the signal used to tune ranking over time.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search/click \
+  -H "Authorization: Bearer pf_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "search_id": "a1b2c3d4-...",
+    "video_id": "vid_abc123",
+    "timestamp_start": 42.5,
+    "rank": 0,
+    "result_type": "frame"
+  }'
+```
+
+## Feedback
+
+Mark a specific segment up or down for a query — this feeds into future ranking and, if downvoted, excludes that segment from your own future searches.
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search/feedback \
+  -H "Authorization: Bearer pf_..." \
+  -F "video_id=vid_abc123" \
+  -F "timestamp_start=42.5" \
+  -F "signal=down" \
+  -F "query=pricing objection"
+```
+
+`signal` is `up` or `down`. Feedback is personal to the API key's creator — a key with no owning user (e.g. one shared across a team where the creator has left) can't submit feedback.

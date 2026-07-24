@@ -1,0 +1,24 @@
+---
+title: Transcripts
+description: How Pureframe AI transcribes audio, and how to retrieve what was said.
+---
+
+Every video's full audio track is transcribed by **Whisper (medium)** during processing, producing timestamped speech segments stored in Postgres. This happens automatically on every upload — there's no separate transcription step to trigger.
+
+## Retrieving transcript content
+
+There's no standalone "get the full transcript" endpoint. Transcript text comes back as the `text_content` field on `transcript`-type segments in [search results](/search/search-results) — you get the parts that matched your query, not a sequential export of everything said. If you need the complete transcript of a video regardless of search relevance, run a broad transcript-only query (`modes=transcript`) and page through the results.
+
+## Language
+
+Transcription itself (Whisper) supports around 99 languages. Full-text search over the transcript, however, is currently configured for English (`websearch_to_tsquery` with an English text-search config) — non-English transcripts are stored correctly, but text search over them may return incomplete or no matches. If your content is primarily non-English, rely more on visual search (language-independent) until broader language support ships.
+
+## What's not included
+
+- No speaker diarization — segments aren't attributed to individual speakers
+- No profanity filtering or redaction — transcripts are stored as Whisper produces them
+- No manual transcript editing via the API — if a transcription is wrong, there's currently no correction mechanism
+
+## Relationship to search
+
+See [Transcript Search](/search/transcript) for how to query transcript content, and [Combined Queries](/search/combined-queries) for how transcript matches merge with visual and scene matches.

@@ -1,0 +1,77 @@
+---
+title: Python SDK
+description: Official Python client, generated from the OpenAPI spec.
+---
+
+The PyPI distribution is `pureframe-ai`; the import name is `pureframe`. It's generated directly from the API spec, so it's always in sync with the latest endpoints, and requires Python 3.9+.
+
+```bash
+pip install pureframe-ai
+```
+
+## Usage
+
+```python
+from pureframe import Pureframe
+
+client = Pureframe(token="pf_...")
+
+# Create a collection
+collection = client.collections.create_collection(name="Product demos")
+collection_id = collection.data.id
+
+# Upload a video
+job = client.upload.upload_video(
+    collection_id=collection_id,
+    file=open("demo.mp4", "rb"),
+)
+job_id = job.data.job_id
+
+# Poll until done
+import time
+while True:
+    status = client.jobs.get_job(job_id)
+    if status.data.status == "done":
+        break
+    time.sleep(5)
+
+# Search
+results = client.search.search(
+    query="pricing objection",
+    collection_id=collection_id,
+)
+for video in results.data:
+    for seg in video.segments:
+        print(f"{video.filename} @ {seg.timestamp_start:.1f}s — {seg.score:.2f}")
+```
+
+We recommend reading your API key from an environment variable rather than hardcoding it:
+
+```python
+import os
+from pureframe import Pureframe
+
+client = Pureframe(token=os.environ.get("PUREFRAME_API_KEY"))
+```
+
+## Resources on the client
+
+The client is organized by resource, matching the REST API's structure:
+
+| Resource | Maps to |
+|----------|---------|
+| `client.collections` | [Collections](/video-processing/collections) |
+| `client.upload` | [Upload Videos](/video-processing/upload-videos) |
+| `client.jobs` | [Processing Status](/video-processing/processing-status) |
+| `client.videos` | [Search a Video](/search/search-a-video) |
+| `client.search` | [Search](/search/overview) |
+| `client.webhooks` | [Webhooks](/production/webhooks) |
+| `client.api_keys` | [API Keys](/get-started/api-keys) |
+| `client.agent` | [Agent Vision](/agents/agent-vision) |
+| `client.frame_map` | [Frame Map](/search/frame-map) |
+
+An async client is also available for use inside `asyncio` applications, mirroring the same method names.
+
+## Full reference
+
+Every method, parameter, and response type is documented in the [API Reference](/api-reference/overview) — the SDK is a thin, typed wrapper over the same REST endpoints.

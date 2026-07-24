@@ -1,0 +1,92 @@
+---
+title: Agent Vision
+description: Give any AI agent the ability to see and search your video library.
+---
+
+Agent Vision lets any AI model search your video library, retrieve video details, and see matched frames directly — without fetching URLs or managing storage.
+
+## How it works
+
+When an agent calls `search_videos`, results include `thumbnail_base64` — a base64-encoded JPEG of the matched frame. Vision-capable models can see this image in the same turn:
+
+1. Agent searches for a moment in video
+2. Pureframe AI returns the matched frame as base64
+3. Agent reads the visual content and answers follow-up questions
+
+No URL fetching, no extra round trips.
+
+## Two ways to connect
+
+**MCP** — the simplest path for Claude, Cursor, VS Code, Codex, OpenCode, and any other MCP-compatible client. See [MCP Overview](/agents/mcp-overview) and [Connect an Agent](/agents/connect-an-agent).
+
+**Direct HTTP / function calling** — for OpenAI, Gemini, or any LLM with function calling, fetch the OpenAI-compatible schema and wire it directly:
+
+```python
+import httpx
+
+BASE = "https://api.pureframe.ai"
+HEADERS = {"Authorization": "Bearer pf_..."}
+
+# Get the tool schema (OpenAI format)
+schema = httpx.get(f"{BASE}/v1/agent/schema.json", headers=HEADERS).json()
+
+# Call a tool
+result = httpx.post(f"{BASE}/v1/agent/call", headers=HEADERS, json={
+    "tool": "search_videos",
+    "input": {
+        "query": "presenter pointing at a chart",
+        "collection_id": "col_abc123",
+        "limit": 5
+    }
+}).json()
+```
+
+Pass `schema` directly to `client.chat.completions.create(tools=schema)` for OpenAI or the equivalent for other providers.
+
+## Example: search + vision with Claude
+
+```python
+import anthropic, httpx
+
+client = anthropic.Anthropic()
+pf = {"Authorization": "Bearer pf_..."}
+
+# Search for a moment
+clips = httpx.post("https://api.pureframe.ai/v1/agent/call",
+    headers=pf,
+    json={"tool": "search_videos", "input": {"query": "whiteboard diagram", "limit": 1}}
+).json()["data"]
+
+# Pass the matched frame directly to Claude
+frame_b64 = clips[0]["thumbnail_base64"]
+
+response = client.messages.create(
+    model="claude-opus-4-7",
+    max_tokens=1024,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": frame_b64}},
+            {"type": "text", "text": "What's written on the whiteboard?"}
+        ]
+    }]
+)
+print(response.content[0].text)
+```
+
+## Tool response fields
+
+`search_videos` returns a list of clips. Each clip:
+
+| Field | Description |
+|-------|-------------|
+| `video_id` | ID of the source video |
+| `filename` | Original filename |
+| `start_secs` / `end_secs` | Clip boundaries in seconds |
+| `relevance_score` | Relevance from 0 to 1 |
+| `text_snippet` | Transcribed speech in this clip, if available |
+| `clip_url` | Presigned URL to stream the video (valid ~1 hour) |
+| `thumbnail_url` | Presigned URL to the matched frame |
+| `thumbnail_base64` | Base64 JPEG for direct use with vision models |
+
+Every answer an agent gives from these fields is traceable back to an exact clip — see [Source-backed Results](/agents/source-backed-results).

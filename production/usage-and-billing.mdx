@@ -1,0 +1,47 @@
+---
+title: Usage and Billing
+description: Free tier limits and Pro plan pricing.
+---
+
+## Pro plan
+
+Pro is credit-based, pay-as-you-go — there's no monthly subscription. You buy credits (minimum $5) and they're deducted automatically as you use the API. Enable auto top-up to reload automatically when your balance runs low.
+
+| Usage type | Price |
+|------------|-------|
+| Video indexing | $0.038 per minute of video |
+| Captioning (optional, per video) | $0.005 per minute of video |
+| GPU compute | $0.90 per compute-hour |
+| Search | $0.001 per search request |
+| Natural-language / agent search | $0.005 per query |
+| Storage | $0.06 per GB-month, accrued daily |
+
+### Example
+
+A 30-minute video costs **$1.14** to index (`30 × $0.038`). Adding captioning brings that to **$1.29** (`+ 30 × $0.005`). GPU compute time is billed separately based on actual processing time, typically a few cents for a 30-minute video. Running 1,000 searches costs $1.00.
+
+## Free tier limits
+
+| Limit | Value |
+|-------|-------|
+| Storage | 100 MB |
+| Searches | 10 per day |
+| API keys | 2 |
+| Max upload size | 5 GB per file |
+| Trial credit | $5, expires 14 days after first use |
+
+Free tier searches count against a daily quota that resets at midnight UTC. Storage is cumulative across all videos in your account. New accounts also receive a one-time $5 trial credit (valid 14 days) that covers indexing costs while you evaluate the product — video indexing and captioning are metered the same way on the free tier as on Pro, funded by this trial credit until it's used or expires.
+
+Trial accounts get reminder emails 3 days and 1 day before expiry, plus a 48-hour grace period after, before hard lockout.
+
+## What happens when you run out of credits
+
+Searches and uploads return `402` with code `INSUFFICIENT_CREDITS`. Add credits from the [Billing page](https://platform.pureframe.ai/billing) or enable auto top-up so this doesn't happen mid-project. Pro accounts get an email alert when the balance drops below $1.
+
+## Billing
+
+Credits are purchased on demand (minimum $5) via the [Billing page](https://platform.pureframe.ai/billing). Credits auto-reload when your balance runs low if you've enabled auto top-up and saved a payment method. You can manage payment methods and view transaction history from the same page.
+
+## Enterprise
+
+For custom pricing, volume discounts, or on-prem deployment, [contact us](mailto:hello@pureframe.ai).

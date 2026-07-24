@@ -1,0 +1,37 @@
+---
+title: Key Concepts
+description: The five ideas that explain how everything else in the API works.
+---
+
+Five ideas cover almost everything you need to reason about the API. Each links to a page with the full detail.
+
+## Collections
+
+A collection is a named group of videos. Every video belongs to exactly one. Scoping a search to a `collection_id` is both faster and more precise than searching your whole library, because fewer vectors need to be compared. See [Collections](/video-processing/collections).
+
+## Jobs and the processing lifecycle
+
+Uploading a video doesn't index it immediately — it queues a job. The job moves through `queued → processing → done` (or `failed`) while Pureframe AI extracts frames, transcribes audio, and writes vectors. A video is only searchable once its job reaches `done`. See [Processing Lifecycle](/video-processing/processing-lifecycle).
+
+## Two search modalities
+
+Pureframe AI indexes videos two ways: **visual** (what's on screen, via frame embeddings) and **transcript** (what's said, via speech-to-text). A query can match either, both, or be restricted to one with the `modes` parameter. They use fundamentally different techniques under the hood — one is vector similarity, the other is full-text search — which is why combining them catches more than either alone. See [Search Overview](/search/overview).
+
+## Segments, not videos
+
+Search doesn't return whole videos — it returns segments: a `timestamp_start`, a `timestamp_end`, a relevance `score`, and (if the match was visual) a frame thumbnail, or (if transcript) the transcribed text. A single video can appear in results with multiple segments if several moments match. See [Search Results](/search/search-results).
+
+## Credits
+
+Pro accounts are billed per action, deducted from a prepaid credit balance — indexing costs per minute of video, search costs a small flat fee per request. There's no monthly subscription; you top up credits and they draw down as you use the API. Free accounts get a daily search quota and a one-time trial credit instead. See [Usage and Billing](/production/usage-and-billing).
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="forward-fast" href="/get-started/quickstart">
+    Put all five to work in one walkthrough.
+  </Card>
+  <Card title="Metadata" icon="tags" href="/video-processing/metadata">
+    Every field on every object, in one reference.
+  </Card>
+</CardGroup>

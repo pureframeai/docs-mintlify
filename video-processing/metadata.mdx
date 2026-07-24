@@ -1,0 +1,71 @@
+---
+title: Metadata
+description: Reference for every object field returned by the Pureframe AI API.
+---
+
+## Video object
+
+Returned by `GET /v1/videos` and `GET /v1/videos/{video_id}`.
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `id` | string | Unique video ID |
+| `filename` | string | Original filename as uploaded |
+| `collection_id` | string | ID of the collection this video belongs to |
+| `status` | string | Processing status: `queued`, `pending`, `processing`, `done`, or `failed` |
+| `progress_pct` | integer \| null | Processing progress 0–100. Present only when status is `queued`, `pending`, or `processing` |
+| `duration_secs` | number \| null | Video duration in seconds. Populated after processing |
+| `width` | integer \| null | Video width in pixels |
+| `height` | integer \| null | Video height in pixels |
+| `fps` | number \| null | Frames per second |
+| `codec` | string \| null | Video codec (e.g. `h264`) |
+| `mime_type` | string \| null | MIME type (e.g. `video/mp4`) |
+| `storage_bytes` | integer \| null | Storage used in bytes |
+| `thumbnail_url` | string \| null | Presigned URL to a representative frame (valid ~1 hour). Present only when `status` is `done` |
+| `playback_url` | string \| null | Presigned URL to stream the full video (valid ~1 hour). Present only on single-video GET |
+| `segments_count` | integer | Number of indexed segments. Present only on single-video GET |
+| `created_at` | string | ISO 8601 creation timestamp |
+
+## Search segment object
+
+Each element in a video's `segments` array from `POST /v1/search`. See [Search Results](/search/search-results) for the full breakdown, including response `meta`.
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `timestamp_start` | number | Segment start in seconds |
+| `timestamp_end` | number | Segment end in seconds |
+| `score` | number | Relevance score from 0 to 1 |
+| `type` | string | Which signal matched: `frame`, `transcript`, `scene`, or `ocr` |
+| `text_content` | string \| null | Transcribed speech or caption text, if available |
+| `bbox` | object \| null | Bounding box within the frame, present on some `ocr` matches |
+| `video_url` | string \| null | Presigned URL to stream the full video at this timestamp (valid ~1 hour) |
+| `thumbnail_url` | string \| null | Presigned URL to the matched frame image (valid ~1 hour) |
+| `hidden` | boolean | Whether you've marked this segment hidden via search feedback |
+| `rank` | integer | Position within the page of results |
+
+## Collection object
+
+Returned by `GET /v1/collections` and `GET /v1/collections/{collection_id}`.
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `id` | string | Unique collection ID |
+| `name` | string | Display name — unique per account |
+| `video_count` | integer | Number of videos in this collection |
+| `total_duration_secs` | number | Total video duration across all videos. Present only on single-collection GET |
+| `storage_bytes` | integer | Total storage used by this collection. Present only on single-collection GET |
+| `created_at` | string | ISO 8601 creation timestamp |
+
+## Job object
+
+Returned by `GET /v1/jobs/{job_id}`.
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `job_id` | string | Unique job ID |
+| `status` | string | `queued`, `pending`, `processing`, `done`, or `failed` |
+| `progress_pct` | integer | Processing progress 0–100 |
+
+## Presigned URLs
+
+`video_url`, `thumbnail_url`, and `playback_url` are presigned — they expire after approximately 1 hour. Re-fetch the relevant resource to get a fresh URL if yours has expired. Do not store these URLs long-term; store the `video_id` instead.

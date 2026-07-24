@@ -1,0 +1,67 @@
+---
+title: Examples
+description: End-to-end walkthroughs combining multiple Pureframe AI features.
+---
+
+These examples combine calls documented individually elsewhere into complete, runnable flows.
+
+## Build a searchable clip library
+
+Using the [Python SDK](/sdks/python-sdk) to index a folder of recordings and search them.
+
+```python
+from pureframe import Pureframe
+import glob, time
+
+client = Pureframe(token="pf_...")
+
+# 1. Create a collection
+collection = client.collections.create_collection(name="Sales calls")
+
+# 2. Upload every recording in a folder
+job_ids = []
+for path in glob.glob("recordings/*.mp4"):
+    job = client.upload.upload_video(collection_id=collection.data.id, file=open(path, "rb"))
+    job_ids.append(job.data.job_id)
+
+# 3. Wait for every job to finish
+for job_id in job_ids:
+    while True:
+        status = client.jobs.get_job(job_id)
+        if status.data.status in ("done", "failed"):
+            break
+        time.sleep(5)
+
+# 4. Search across the whole collection
+results = client.search.search(query="customer mentions renewal", collection_id=collection.data.id)
+for video in results.data:
+    for seg in video.segments:
+        print(f"{video.filename} @ {seg.timestamp_start:.1f}s — {seg.score:.2f}")
+```
+
+## Give an agent video search via MCP
+
+Configure Claude Code to search your library directly, using the setup from [Connect an Agent](/agents/connect-an-agent):
+
+```bash
+claude mcp add pureframe -- npx -y @pureframeai/mcp
+```
+
+Set `PUREFRAME_API_KEY` to a `read_only` key (see [API Keys](/get-started/api-keys)) so the agent can search but never upload or delete. Then, in conversation:
+
+> "Search our onboarding call recordings for anywhere a customer asks about SSO, and tell me what was said."
+
+Claude calls `search_videos`, receives clips with `thumbnail_base64` and transcribed speech, and can answer directly from what it sees and reads — no manual video scrubbing.
+
+## Reverse image search for brand mentions
+
+Find every moment a specific product or logo appears on screen, using a reference image instead of a text description:
+
+```bash
+curl -X POST https://api.pureframe.ai/v1/search \
+  -H "Authorization: Bearer pf_..." \
+  -F "image=@logo-reference.jpg" \
+  -F "modes=video"
+```
+
+This restricts to `modes=video` since a static reference image has no transcript to match. Combine with `collection_id` to scope the scan to a specific library — see [Image Search](/search/image) for the full parameter reference.
